@@ -2,7 +2,7 @@
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Input } from "@/components/ui/input"
-import { NotificationBell } from "../NotificationBell/NotificationBell"
+// import { NotificationBell } from "../NotificationBell/NotificationBell"
 import { User } from "lucide-react"
 
 export function SiteHeader() {
@@ -46,7 +46,7 @@ export function SiteHeader() {
         {/* USER SECTION */}
         <div className="flex items-center gap-3">
 
-          <NotificationBell />
+          {/* <NotificationBell /> */}
 
           <div className="h-4 w-px bg-slate-200" />
 
