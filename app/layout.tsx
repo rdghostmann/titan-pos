@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
+import SessionWrapper from "@/components/SessionWrapper/SessionWrapper";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import ReactQueryProvider from "@/provider/ReactQueryProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const manrope = Manrope({subsets:['latin'],variable:'--font-sans'})
 
@@ -43,8 +47,22 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", manrope.variable)}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+       <body cz-shortcut-listen="true">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SessionWrapper>
+            <TooltipProvider>
+              <ReactQueryProvider>
+                {children}
+              </ReactQueryProvider>
+              <Toaster />
+            </TooltipProvider>
+          </SessionWrapper>
+        </ThemeProvider>
       </body>
     </html>
   )
