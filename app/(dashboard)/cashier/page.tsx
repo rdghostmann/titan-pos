@@ -1,11 +1,8 @@
 import React from 'react'
+import CashierDashboard from './CashierDashboard'
 
 const page = () => {
-  return (
-    <div>
-      Cashier Dashboard
-    </div>
-  )
+  return <CashierDashboard />
 }
 
 export default page
