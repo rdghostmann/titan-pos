@@ -12,8 +12,6 @@ import {
 } from "@phosphor-icons/react"
 
 import { NavMain } from "@/components/dashboard/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
 
 import {
   Sidebar,
@@ -26,6 +24,8 @@ import {
 } from "@/components/ui/sidebar"
 import { roleNavMain } from "@/lib/roles_nav"
 import Image from "next/image"
+import { NavSecondary } from "./nav-secondary"
+import { NavUser } from "./nav-user"
 
 type UserRole = keyof typeof roleNavMain
 
