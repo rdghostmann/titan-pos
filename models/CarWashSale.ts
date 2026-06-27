@@ -1,3 +1,4 @@
+// models/CarWashSale.ts
 import { Schema, model, models } from 'mongoose';
 
 const CarWashSaleSchema = new Schema(
