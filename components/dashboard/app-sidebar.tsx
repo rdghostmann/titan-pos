@@ -23,7 +23,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { roleNavMain } from "@/lib/roles_nav"
-import Image from "next/image"
 import { NavSecondary } from "./nav-secondary"
 import { NavUser } from "./nav-user"
 
@@ -42,7 +41,7 @@ export function AppSidebar({
 
   const data = {
     user: {
-      name: `${session?.user?.firstName || ""} ${session?.user?.lastName || ""}`.trim() || "Guest",
+      name: `${session?.user?.name || ""}`.trim() || "Guest",
       email: session?.user?.email || "guest@example.com",
       avatar: "/avatars/shadcn.webp",
     },

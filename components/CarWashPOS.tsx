@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Droplet, 
   Search, 
@@ -18,19 +18,50 @@ import {
   Clock, 
   HelpCircle 
 } from 'lucide-react';
-import { CarWashSale, UserRole } from '@/types';
+import { CarWashSale } from '@/types';
 import { ATTENDANTS_CARWASH, CASHIERS, CARWASH_PRICING, formatNaira } from '@/mockData';
 
-interface CarWashPOSProps {
-  sales: CarWashSale[];
-  onAddSale: (sale: CarWashSale) => void;
-  onDeleteSale: (id: string) => void;
-  currentRole: UserRole;
-  currentUser: string;
-  showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
-}
+const STATIC_CARWASH_SALES: CarWashSale[] = [
+  {
+    id: 'cw-1',
+    receiptNumber: 'CW-20260621-001',
+    date: '2026-06-21T09:20:00.000Z',
+    customerName: 'Ada Okafor',
+    customerPhone: '+2348050001122',
+    vehicleNumberPlate: 'KJA-345LK',
+    vehicleType: 'Sedan',
+    serviceType: 'Full Wash',
+    amount: 2500,
+    paymentMethod: 'Cash',
+    attendant: 'Bola Okafor',
+    cashier: 'Grace Eze',
+    timeIn: '09:20',
+    timeOut: '10:05',
+    remarks: 'Interior vacuum requested'
+  },
+  {
+    id: 'cw-2',
+    receiptNumber: 'CW-20260621-002',
+    date: '2026-06-21T12:10:00.000Z',
+    customerName: 'Tunde Salami',
+    customerPhone: '+2348022233344',
+    vehicleNumberPlate: 'ABC-123XY',
+    vehicleType: 'SUV',
+    serviceType: 'Waxing',
+    amount: 5500,
+    paymentMethod: 'POS',
+    attendant: 'Amina Yusuf',
+    cashier: 'Tunde Bassey',
+    timeIn: '12:10',
+    timeOut: '12:55',
+    remarks: 'Premium wax package'
+  }
+];
 
-export default function CarWashPOS({ sales, onAddSale, onDeleteSale, currentRole, currentUser, showToast }: CarWashPOSProps) {
+export default function CarWashPOS() {
+  const [currentRole] = useState('Administrator');
+  const [currentUser] = useState('System');
+  const [sales, setSales] = useState<CarWashSale[]>(STATIC_CARWASH_SALES);
   // Local active form state
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -75,18 +106,20 @@ export default function CarWashPOS({ sales, onAddSale, onDeleteSale, currentRole
     }
   }, [vehicleType, serviceType]);
 
+  const showToast = (msg: string, type?: 'success' | 'error' | 'info') => {
+    console.info(`[${type ?? 'info'}] ${msg}`);
+  };
+
   // Handle auto calculation of receipt number
-  const nextReceiptNumber = useMemo(() => {
-    const today = new Date('2026-06-21'); // current context date
+  const nextReceiptNumber = (() => {
+    const today = new Date('2026-06-21');
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     const prefix = `CW-${yyyy}${mm}${dd}`;
-
-    // Count existing car wash sales for today
     const count = sales.filter(s => s.receiptNumber.startsWith(prefix)).length;
     return `${prefix}-${String(count + 1).padStart(3, '0')}`;
-  }, [sales]);
+  })();
 
   // Reset form helper
   const clearForm = () => {
@@ -141,47 +174,40 @@ export default function CarWashPOS({ sales, onAddSale, onDeleteSale, currentRole
       remarks: remarks.trim()
     };
 
-    onAddSale(newSale);
+    setSales(prev => [newSale, ...prev]);
     showToast(`Car Wash ticket ${newSale.receiptNumber} Saved Successfully!`, 'success');
-    
+
     // Auto-prompt thermal receipt modal
     setActiveReceipt(newSale);
     clearForm();
   };
 
   // Conditional records list based on active role
-  // Rule: Car Wash Attendant can only see their own records
-  const filteredSalesByRole = useMemo(() => {
-    if (currentRole === 'Car Wash Attendant') {
-      return sales.filter(s => s.attendant.toLowerCase().includes(currentUser.toLowerCase()));
-    }
-    return sales;
-  }, [sales, currentRole, currentUser]);
+  const filteredSalesByRole = currentRole === 'Car Wash Attendant'
+    ? sales.filter(s => s.attendant.toLowerCase().includes(currentUser.toLowerCase()))
+    : sales;
 
   // Apply search query & filters
-  const searchedSales = useMemo(() => {
-    return filteredSalesByRole.filter(s => {
-      const query = searchQuery.toLowerCase();
-      const matchSearch = 
-        s.customerName.toLowerCase().includes(query) ||
-        s.receiptNumber.toLowerCase().includes(query) ||
-        s.vehicleNumberPlate.toLowerCase().includes(query) ||
-        s.attendant.toLowerCase().includes(query) ||
-        s.cashier.toLowerCase().includes(query);
+  const searchedSales = filteredSalesByRole.filter(s => {
+    const query = searchQuery.toLowerCase();
+    const matchSearch =
+      s.customerName.toLowerCase().includes(query) ||
+      s.receiptNumber.toLowerCase().includes(query) ||
+      s.vehicleNumberPlate.toLowerCase().includes(query) ||
+      s.attendant.toLowerCase().includes(query) ||
+      s.cashier.toLowerCase().includes(query);
 
-      const matchVehicle = filterVehicle === 'All' || s.vehicleType === filterVehicle;
-      const matchService = filterService === 'All' || s.serviceType === filterService;
+    const matchVehicle = filterVehicle === 'All' || s.vehicleType === filterVehicle;
+    const matchService = filterService === 'All' || s.serviceType === filterService;
 
-      return matchSearch && matchVehicle && matchService;
-    });
-  }, [filteredSalesByRole, searchQuery, filterVehicle, filterService]);
+    return matchSearch && matchVehicle && matchService;
+  });
 
   // Mini summary calculations
-  const localStats = useMemo(() => {
-    const totalSales = searchedSales.reduce((s, c) => s + c.amount, 0);
-    const totalCount = searchedSales.length;
-    return { totalSales, totalCount };
-  }, [searchedSales]);
+  const localStats = {
+    totalSales: searchedSales.reduce((s, c) => s + c.amount, 0),
+    totalCount: searchedSales.length,
+  };
 
   // Trigger Native browser printing
   const triggerNativePrint = () => {

@@ -1,7 +1,7 @@
-import React from 'react'
+import CookingGasPage from './CookingGasPage'
 
 const page = () => {
-  return
+  return <CookingGasPage />
 }
 
 export default page

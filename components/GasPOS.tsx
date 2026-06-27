@@ -209,7 +209,7 @@ export default function GasPOS() {
   return (
     <div className="space-y-6" id="gas-pos-container">
       {/* Header and Quick Navigation context */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white dark:bg-gray-800 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-xs" id="gas-header">
+      <div className="flex p-6 bg-white dark:bg-gray-800 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-xs" id="gas-header">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-orange-100 dark:bg-orange-950/40 rounded-xl text-orange-600 dark:text-orange-400">
             <Flame className="w-6 h-6" />
@@ -219,7 +219,7 @@ export default function GasPOS() {
             <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">Record refills, manage cylinders & print immediate receipts</p>
           </div>
         </div>
-        <div className="mt-4 md:mt-0 px-4 py-2 bg-slate-50 dark:bg-slate-700/40 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300">
+        <div className="hidden mt-4 md:mt-0 px-4 py-2 bg-slate-50 dark:bg-slate-700/40 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300">
           TICKET AUTO-SEQUENCE: <span className="font-mono text-orange-600 dark:text-orange-400 font-bold">{nextReceiptNumber}</span>
         </div>
       </div>

@@ -482,26 +482,11 @@ export default function Home() {
           )}
 
           {activeTab === 'carwash' && (
-            <CarWashPOS
-              sales={carWashSales}
-              onAddSale={handleAddCWSale}
-              onDeleteSale={handleDeleteCWSale}
-              currentRole={currentRole}
-              currentUser={currentName}
-              showToast={showToastMsg}
-            />
+            <CarWashPOS />
           )}
 
           {activeTab === 'retail_pos' && (
-            <GeneralPOS
-              products={products}
-              sales={generalSales}
-              onAddSale={handleAddGeneralSale}
-              onUpdateProduct={handleUpdateProduct}
-              currentRole={currentRole}
-              currentUserName={currentName}
-              showToast={showToastMsg}
-            />
+            <GeneralPOS />
           )}
 
           {activeTab === 'inventory' && (
