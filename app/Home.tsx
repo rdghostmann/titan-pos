@@ -503,20 +503,11 @@ export default function Home() {
           )}
 
           {activeTab === 'reports' && (
-            <Reporting
-              gasSales={gasSales}
-              carWashSales={carWashSales}
-            />
+            <Reporting />
           )}
 
           {activeTab === 'excel' && (
-            <ExcelIO
-              gasSales={gasSales}
-              carWashSales={carWashSales}
-              onImportGasSales={handleImportGasSales}
-              onImportCarWashSales={handleImportCarWashSales}
-              showToast={showToastMsg}
-            />
+            <ExcelIO />
           )}
 
           {activeTab === 'users' && (

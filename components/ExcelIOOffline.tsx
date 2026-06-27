@@ -1,37 +1,91 @@
 "use client";
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { 
   FileSpreadsheet, 
   Download, 
   Upload, 
-  AlertTriangle, 
-  CheckCircle, 
-  Layers, 
-  Info, 
-  Play, 
-  Eye,
-  Trash2
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import { GasSale, CarWashSale } from '@/types';
-import { ATTENDANTS_GAS, ATTENDANTS_CARWASH, CASHIERS, formatNaira } from '@/mockData';
+import { ATTENDANTS_GAS, ATTENDANTS_CARWASH, CASHIERS } from '@/mockData';
 
-interface ExcelIOProps {
-  gasSales: GasSale[];
-  carWashSales: CarWashSale[];
-  onImportGasSales: (parsed: GasSale[], mode: 'merge' | 'replace') => void;
-  onImportCarWashSales: (parsed: CarWashSale[], mode: 'merge' | 'replace') => void;
-  showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
-}
+const STATIC_GAS_SALES: GasSale[] = [
+  {
+    id: 'gas-1',
+    receiptNumber: 'GAS-1001',
+    date: '2026-06-21T09:30:00.000Z',
+    customerName: 'Amina Yusuf',
+    customerPhone: '08031234567',
+    cylinderSize: '12.5kg',
+    quantity: 12.5,
+    pricePerKg: 1200,
+    amount: 15000,
+    paymentMethod: 'Cash',
+    attendant: ATTENDANTS_GAS[0],
+    cashier: CASHIERS[0],
+    remarks: 'Standard refill'
+  },
+  {
+    id: 'gas-2',
+    receiptNumber: 'GAS-1002',
+    date: '2026-06-21T11:15:00.000Z',
+    customerName: 'Bola Ade',
+    customerPhone: '08036543210',
+    cylinderSize: '6kg',
+    quantity: 6,
+    pricePerKg: 1100,
+    amount: 6600,
+    paymentMethod: 'POS',
+    attendant: ATTENDANTS_GAS[1],
+    cashier: CASHIERS[1],
+    remarks: 'Express refill'
+  }
+];
 
-export default function ExcelIO({ 
-  gasSales, 
-  carWashSales, 
-  onImportGasSales, 
-  onImportCarWashSales, 
-  showToast 
-}: ExcelIOProps) {
+const STATIC_CAR_WASH_SALES: CarWashSale[] = [
+  {
+    id: 'cw-1',
+    receiptNumber: 'CW-2001',
+    date: '2026-06-21T10:00:00.000Z',
+    customerName: 'Kunle Salami',
+    customerPhone: '08021234567',
+    vehicleNumberPlate: 'ABC-123-XY',
+    vehicleType: 'Sedan',
+    serviceType: 'Full Wash',
+    amount: 5000,
+    paymentMethod: 'Cash',
+    attendant: ATTENDANTS_CARWASH[0],
+    cashier: CASHIERS[0],
+    timeIn: '09:45',
+    timeOut: '10:15',
+    remarks: 'Interior vacuum'
+  },
+  {
+    id: 'cw-2',
+    receiptNumber: 'CW-2002',
+    date: '2026-06-21T12:40:00.000Z',
+    customerName: 'Sade Okafor',
+    customerPhone: '08029876543',
+    vehicleNumberPlate: 'XYZ-987-ZA',
+    vehicleType: 'SUV',
+    serviceType: 'Premium Polish',
+    amount: 8000,
+    paymentMethod: 'Bank Transfer',
+    attendant: ATTENDANTS_CARWASH[1],
+    cashier: CASHIERS[1],
+    timeIn: '12:20',
+    timeOut: '12:55',
+    remarks: 'Waxing package'
+  }
+];
+
+export default function ExcelIOOffline() {
   
+  const [gasSales, setGasSales] = useState<GasSale[]>(STATIC_GAS_SALES);
+  const [carWashSales, setCarWashSales] = useState<CarWashSale[]>(STATIC_CAR_WASH_SALES);
+
   // States to hold uploaded preview data
   const [gasImportPreview, setGasImportPreview] = useState<any[] | null>(null);
   const [cwImportPreview, setCWImportPreview] = useState<any[] | null>(null);
@@ -42,6 +96,10 @@ export default function ExcelIO({
   // File Input References
   const fileInputGasRef = useRef<HTMLInputElement>(null);
   const fileInputCWRef = useRef<HTMLInputElement>(null);
+
+  const showToast = (msg: string, type?: 'success' | 'error' | 'info') => {
+    console.info(`[${type ?? 'info'}] ${msg}`);
+  };
 
   // --- EXPORT Gas Plant Records ---
   const handleExportGas = () => {
@@ -364,7 +422,13 @@ export default function ExcelIO({
   // --- COMMIT IMPORTS (Gas Plant Division) ---
   const commitGasImport = (mode: 'merge' | 'replace') => {
     if (!gasImportPreview) return;
-    onImportGasSales(gasImportPreview as GasSale[], mode);
+
+    if (mode === 'replace') {
+      setGasSales(gasImportPreview as GasSale[]);
+    } else {
+      setGasSales(prev => [...prev, ...(gasImportPreview as GasSale[])]);
+    }
+
     setGasImportPreview(null);
     setDuplicateGasReceiptsCount(0);
     if (fileInputGasRef.current) fileInputGasRef.current.value = '';
@@ -374,7 +438,13 @@ export default function ExcelIO({
   // --- COMMIT IMPORTS (Car Wash Division) ---
   const commitCWImport = (mode: 'merge' | 'replace') => {
     if (!cwImportPreview) return;
-    onImportCarWashSales(cwImportPreview as CarWashSale[], mode);
+
+    if (mode === 'replace') {
+      setCarWashSales(cwImportPreview as CarWashSale[]);
+    } else {
+      setCarWashSales(prev => [...prev, ...(cwImportPreview as CarWashSale[])]);
+    }
+
     setCWImportPreview(null);
     setDuplicateCWReceiptsCount(0);
     if (fileInputCWRef.current) fileInputCWRef.current.value = '';

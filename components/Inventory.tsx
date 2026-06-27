@@ -1,7 +1,7 @@
 // Inventory.tsx
 
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   Search,
   Plus,
@@ -23,16 +23,93 @@ import {
 import { Product, StockLog, UserRole } from '@/types';
 import { formatNaira } from '@/mockData';
 
-interface InventoryProps {
-  products: Product[];
-  stockLogs: StockLog[];
-  onAddProduct: (product: Product) => void;
-  onUpdateProduct: (product: Product) => void;
-  onDeleteProduct: (id: string) => void;
-  onAddStockLog: (log: StockLog) => void;
-  currentRole: UserRole;
-  currentUserName: string;
-}
+const STATIC_PRODUCTS: Product[] = [
+  {
+    id: 'p-1',
+    name: 'Rice 5kg',
+    category: 'Groceries',
+    description: 'Premium rice bag',
+    barcode: '100001',
+    costPrice: 6500,
+    sellingPrice: 7500,
+    quantity: 25,
+    reorderLevel: 10,
+    unitType: 'Bag',
+    status: 'Active',
+    dateAdded: '2026-06-01',
+    lastUpdated: '2026-06-21'
+  },
+  {
+    id: 'p-2',
+    name: 'Detergent Pack',
+    category: 'Household Items',
+    description: 'Cleaning detergent',
+    barcode: '100002',
+    costPrice: 1800,
+    sellingPrice: 2200,
+    quantity: 6,
+    reorderLevel: 8,
+    unitType: 'Pack',
+    status: 'Active',
+    dateAdded: '2026-06-01',
+    lastUpdated: '2026-06-21'
+  },
+  {
+    id: 'p-3',
+    name: 'Water 25L',
+    category: 'Beverages',
+    description: 'Mineral water',
+    barcode: '100003',
+    costPrice: 300,
+    sellingPrice: 400,
+    quantity: 40,
+    reorderLevel: 12,
+    unitType: 'Bottle',
+    status: 'Active',
+    dateAdded: '2026-06-01',
+    lastUpdated: '2026-06-21'
+  },
+  {
+    id: 'p-4',
+    name: 'Laptop Charger',
+    category: 'Electronics',
+    description: 'Fast charging adapter',
+    barcode: '100004',
+    costPrice: 15000,
+    sellingPrice: 22000,
+    quantity: 0,
+    reorderLevel: 4,
+    unitType: 'Pcs',
+    status: 'Active',
+    dateAdded: '2026-06-02',
+    lastUpdated: '2026-06-21'
+  }
+];
+
+const STATIC_STOCK_LOGS: StockLog[] = [
+  {
+    id: 'log-1',
+    productId: 'p-1',
+    productName: 'Rice 5kg',
+    prevQuantity: 20,
+    newQuantity: 25,
+    quantityChanged: 5,
+    actionType: 'Addition',
+    adminName: 'System',
+    date: '2026-06-21T09:30:00.000Z'
+  },
+  {
+    id: 'log-2',
+    productId: 'p-2',
+    productName: 'Detergent Pack',
+    prevQuantity: 8,
+    newQuantity: 6,
+    quantityChanged: -2,
+    actionType: 'Reduction',
+    adminName: 'System',
+    date: '2026-06-21T10:15:00.000Z'
+  }
+];
 
 const CATEGORIES = [
   'Groceries',
@@ -45,17 +122,11 @@ const CATEGORIES = [
   'Services'
 ] as const;
 
-export default function Inventory({
-  products,
-  stockLogs,
-  onAddProduct,
-  onUpdateProduct,
-  onDeleteProduct,
-  onAddStockLog,
-  currentRole,
-  currentUserName
-}: InventoryProps) {
-  const isAdmin = currentRole === 'Administrator';
+export default function Inventory() {
+  const isAdmin = true;
+  const [products, setProducts] = useState<Product[]>(STATIC_PRODUCTS);
+  const [stockLogs, setStockLogs] = useState<StockLog[]>(STATIC_STOCK_LOGS);
+  const [currentUserName] = useState('System');
 
   // State
   const [activeSubTab, setActiveSubTab] = useState<'products' | 'logs'>('products');
@@ -93,39 +164,31 @@ export default function Inventory({
   const [stockNotes, setStockNotes] = useState('');
 
   // Filtering products
-  const filteredProducts = useMemo(() => {
-    return products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.barcode && product.barcode.includes(searchTerm));
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.barcode && product.barcode.includes(searchTerm));
 
-      const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
 
-      let matchesStock = true;
-      if (stockFilter === 'Low') {
-        matchesStock = product.quantity < product.reorderLevel;
-      } else if (stockFilter === 'InStock') {
-        matchesStock = product.quantity >= product.reorderLevel && product.quantity > 0;
-      } else if (stockFilter === 'OutOfStock') {
-        matchesStock = product.quantity === 0;
-      }
+    let matchesStock = true;
+    if (stockFilter === 'Low') {
+      matchesStock = product.quantity < product.reorderLevel;
+    } else if (stockFilter === 'InStock') {
+      matchesStock = product.quantity >= product.reorderLevel && product.quantity > 0;
+    } else if (stockFilter === 'OutOfStock') {
+      matchesStock = product.quantity === 0;
+    }
 
-      return matchesSearch && matchesCategory && matchesStock;
-    });
-  }, [products, searchTerm, selectedCategory, stockFilter]);
+    return matchesSearch && matchesCategory && matchesStock;
+  });
 
   // Statistics
-  const lowStockProducts = useMemo(() => {
-    return products.filter(p => p.status === 'Active' && p.quantity < p.reorderLevel);
-  }, [products]);
+  const lowStockProducts = products.filter(p => p.status === 'Active' && p.quantity < p.reorderLevel);
 
-  const totalInventoryValue = useMemo(() => {
-    return products.reduce((sum, p) => sum + (p.sellingPrice * p.quantity), 0);
-  }, [products]);
+  const totalInventoryValue = products.reduce((sum, p) => sum + (p.sellingPrice * p.quantity), 0);
 
-  const totalCostValue = useMemo(() => {
-    return products.reduce((sum, p) => sum + (p.costPrice * p.quantity), 0);
-  }, [products]);
+  const totalCostValue = products.reduce((sum, p) => sum + (p.costPrice * p.quantity), 0);
 
   // Handle open add / edit modals
   const handleOpenProductModal = (type: 'add' | 'edit', prod?: Product) => {
@@ -169,7 +232,7 @@ export default function Inventory({
     const isoDate = new Date().toISOString();
 
     if (productModal.type === 'add') {
-      const newId = 'p_' + Math.random().toString(36).substr(2, 9);
+      const newId = `p-${products.length + 1}`;
       const newProduct: Product = {
         id: newId,
         name: formName,
@@ -186,10 +249,10 @@ export default function Inventory({
         lastUpdated: isoDate
       };
 
-      onAddProduct(newProduct);
+      setProducts(prev => [newProduct, ...prev]);
 
       // Create Stock Log
-      const logId = 'log_' + Math.random().toString(36).substr(2, 9);
+      const logId = `log-${stockLogs.length + 1}`;
       const newLog: StockLog = {
         id: logId,
         productId: newId,
@@ -220,12 +283,12 @@ export default function Inventory({
         lastUpdated: isoDate
       };
 
-      onUpdateProduct(updatedProduct);
+      setProducts(prev => prev.map(item => item.id === updatedProduct.id ? updatedProduct : item));
 
       // Log qty difference if changed
       if (prevQty !== Number(formQty)) {
         const diff = Number(formQty) - prevQty;
-        const logId = 'log_' + Math.random().toString(36).substr(2, 9);
+        const logId = `log-${stockLogs.length + 1}`;
         const newLog: StockLog = {
           id: logId,
           productId: productModal.product.id,
@@ -237,7 +300,7 @@ export default function Inventory({
           adminName: currentUserName,
           date: isoDate
         };
-        onAddStockLog(newLog);
+        setStockLogs(prev => [newLog, ...prev]);
       }
     }
 
@@ -285,10 +348,10 @@ export default function Inventory({
       lastUpdated: isoDate
     };
 
-    onUpdateProduct(updatedProd);
+    setProducts(prev => prev.map(item => item.id === updatedProd.id ? updatedProd : item));
 
     // Create log
-    const logId = 'log_' + Math.random().toString(36).substr(2, 9);
+    const logId = `log-${stockLogs.length + 1}`;
     const newLog: StockLog = {
       id: logId,
       productId: prod.id,
@@ -572,7 +635,7 @@ export default function Inventory({
                                     title="Delete product catalog"
                                     onClick={() => {
                                       if (confirm(`Are you sure you want to delete ${product.name} from inventory?`)) {
-                                        onDeleteProduct(product.id);
+                                        setProducts(prev => prev.filter(item => item.id !== product.id));
                                       }
                                     }}
                                     className="p-1.5 bg-red-50 dark:bg-red-950/50 text-red-500 rounded hover:bg-red-100 transition"

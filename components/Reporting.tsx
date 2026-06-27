@@ -1,30 +1,81 @@
 "use client";
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { 
   FileText, 
   Search, 
   Printer, 
   ArrowUpDown, 
-  Filter, 
   Calendar, 
-  ChevronRight, 
   TrendingUp, 
   DollarSign, 
   ShoppingBag, 
   CreditCard 
 } from 'lucide-react';
-import { GasSale, CarWashSale } from '@/types';
 import { formatNaira } from '@/mockData';
 
-interface ReportingProps {
-  gasSales: GasSale[];
-  carWashSales: CarWashSale[];
-}
+const STATIC_REPORT_ROWS = [
+  {
+    id: 'r-1',
+    date: '2026-06-21T09:30:00.000Z',
+    source: 'Gas Plant',
+    receiptNumber: 'GAS-1001',
+    customerName: 'Amina Yusuf',
+    customerPhone: '08031234567',
+    displayType: 'LPG 12.5kg',
+    displayDetails: '12.5 kg @ ₦1200/kg',
+    paymentMethod: 'Cash',
+    attendant: 'Mariam Bello',
+    cashier: 'Binta Musa',
+    amount: 15000
+  },
+  {
+    id: 'r-2',
+    date: '2026-06-21T10:00:00.000Z',
+    source: 'Car Wash',
+    receiptNumber: 'CW-2001',
+    customerName: 'Kunle Salami',
+    customerPhone: '08021234567',
+    displayType: 'Sedan Clear',
+    displayDetails: 'Full Wash',
+    paymentMethod: 'POS',
+    attendant: 'Tunde Akin',
+    cashier: 'Grace Udo',
+    amount: 5000
+  },
+  {
+    id: 'r-3',
+    date: '2026-06-21T11:15:00.000Z',
+    source: 'Gas Plant',
+    receiptNumber: 'GAS-1002',
+    customerName: 'Bola Ade',
+    customerPhone: '08036543210',
+    displayType: 'LPG 6kg',
+    displayDetails: '6 kg @ ₦1100/kg',
+    paymentMethod: 'Bank Transfer',
+    attendant: 'Seyi Ibitoye',
+    cashier: 'Maryam Hassan',
+    amount: 6600
+  },
+  {
+    id: 'r-4',
+    date: '2026-06-21T12:40:00.000Z',
+    source: 'Car Wash',
+    receiptNumber: 'CW-2002',
+    customerName: 'Sade Okafor',
+    customerPhone: '08029876543',
+    displayType: 'SUV Clear',
+    displayDetails: 'Premium Polish',
+    paymentMethod: 'Cash',
+    attendant: 'Kemi Lawal',
+    cashier: 'Titi Okafor',
+    amount: 8000
+  }
+];
 
 type SortField = 'date' | 'amount' | 'receipt' | 'customer';
 type SortOrder = 'asc' | 'desc';
 
-export default function Reporting({ gasSales, carWashSales }: ReportingProps) {
+export default function Reporting() {
   // Preset report periods
   const [reportPeriod, setReportPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   // Selected scope (combined, gas, carwash)
@@ -39,8 +90,7 @@ export default function Reporting({ gasSales, carWashSales }: ReportingProps) {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
-  // Compute boundaries for periods
-  const periodBoundaries = useMemo(() => {
+  const periodBoundaries = (() => {
     const today = new Date('2026-06-21T14:45:00');
     let start = new Date(today);
     let end = new Date(today);
@@ -49,11 +99,9 @@ export default function Reporting({ gasSales, carWashSales }: ReportingProps) {
       start.setHours(0, 0, 0, 0);
       end.setHours(23, 59, 59, 999);
     } else if (reportPeriod === 'weekly') {
-      // Last 7 days
       start.setDate(today.getDate() - 7);
       end.setHours(23, 59, 59, 999);
     } else if (reportPeriod === 'monthly') {
-      // Month to date (June 2026)
       start = new Date('2026-06-01T00:00:00');
       end.setHours(23, 59, 59, 999);
     } else if (reportPeriod === 'custom') {
@@ -62,50 +110,30 @@ export default function Reporting({ gasSales, carWashSales }: ReportingProps) {
     }
 
     return { start, end };
-  }, [reportPeriod, startDateStr, endDateStr]);
+  })();
 
-  // Combined dataset with standard labels
-  const consolidatedRecords = useMemo(() => {
+  const consolidatedRecords = (() => {
     const { start, end } = periodBoundaries;
+    let combined = STATIC_REPORT_ROWS;
 
-    const gasMapped = gasSales.map(g => ({
-      ...g,
-      source: 'Gas Plant' as const,
-      displayType: `LPG ${g.cylinderSize}`,
-      displayDetails: `${g.quantity} kg @ ₦${g.pricePerKg}/kg`
-    }));
-
-    const cwMapped = carWashSales.map(c => ({
-      ...c,
-      source: 'Car Wash' as const,
-      displayType: `${c.vehicleType} Clear`,
-      displayDetails: c.serviceType
-    }));
-
-    // Filter by Scope
-    let combined: Array<any> = [];
-    if (scope === 'all') {
-      combined = [...gasMapped, ...cwMapped];
-    } else if (scope === 'gas') {
-      combined = gasMapped;
+    if (scope === 'gas') {
+      combined = STATIC_REPORT_ROWS.filter(record => record.source === 'Gas Plant');
     } else if (scope === 'carwash') {
-      combined = cwMapped;
+      combined = STATIC_REPORT_ROWS.filter(record => record.source === 'Car Wash');
     }
 
-    // Filter by Date Boundaries
     return combined.filter(record => {
       const recordDate = new Date(record.date);
       return recordDate >= start && recordDate <= end;
     });
-  }, [gasSales, carWashSales, periodBoundaries, scope]);
+  })();
 
-  // Apply sorting and text search
-  const searchedAndSortedRecords = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim();
-    
+  const query = searchQuery.toLowerCase().trim();
+  const searchedAndSortedRecords = (() => {
     let result = consolidatedRecords;
+
     if (query) {
-      result = result.filter(r => 
+      result = result.filter(r =>
         r.customerName.toLowerCase().includes(query) ||
         r.receiptNumber.toLowerCase().includes(query) ||
         r.displayType.toLowerCase().includes(query) ||
@@ -115,7 +143,6 @@ export default function Reporting({ gasSales, carWashSales }: ReportingProps) {
       );
     }
 
-    // Sort order logic
     return [...result].sort((a, b) => {
       let valA: any = a[sortField === 'receipt' ? 'receiptNumber' : sortField === 'customer' ? 'customerName' : sortField];
       let valB: any = b[sortField === 'receipt' ? 'receiptNumber' : sortField === 'customer' ? 'customerName' : sortField];
@@ -129,16 +156,14 @@ export default function Reporting({ gasSales, carWashSales }: ReportingProps) {
       if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [consolidatedRecords, searchQuery, sortField, sortOrder]);
+  })();
 
-  // Aggregate Reporting Figures
-  const aggregates = useMemo(() => {
+  const aggregates = (() => {
     let revenue = 0;
     let transactions = searchedAndSortedRecords.length;
     let cashPay = 0;
     let transferPay = 0;
     let posPay = 0;
-
     let gasShare = 0;
     let cwShare = 0;
 
@@ -161,7 +186,7 @@ export default function Reporting({ gasSales, carWashSales }: ReportingProps) {
       gasShare,
       cwShare
     };
-  }, [searchedAndSortedRecords]);
+  })();
 
   // Toggle sort direction helper
   const handleSort = (field: SortField) => {
