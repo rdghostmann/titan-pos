@@ -23,7 +23,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { roleNavMain } from "@/lib/roles_nav"
-import { NavSecondary } from "./nav-secondary"
+// import { NavSecondary } from "./nav-secondary"
 import { NavUser } from "./nav-user"
 
 type UserRole = keyof typeof roleNavMain
@@ -85,7 +85,7 @@ export function AppSidebar({
 
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

@@ -1,82 +1,60 @@
+// GasPOS.tsx
 "use client";
 import React, { useState, useEffect } from 'react';
-import { 
-  Flame, 
-  Search, 
-  Trash2, 
-  Printer, 
-  RotateCcw, 
-  CheckCircle, 
-  X, 
-  Phone, 
-  User as UserIcon, 
-  Layers, 
-  Scale, 
-  DollarSign, 
+import {
+  Flame,
+  Search,
+  Trash2,
+  Printer,
+  RotateCcw,
+  CheckCircle,
+  X,
+  Phone,
+  User as UserIcon,
+  Layers,
+  Scale,
+  DollarSign,
+  LoaderCircle,
 } from 'lucide-react';
-import { GasSale } from '@/types';
+import type {
+  GasSale,
+  CreateGasSaleInput,
+} from "@/controllers/GasSaleActions";
+
+import {
+  GetGasSales,
+  CreateGasSales,
+  DeleteGasSale,
+} from "@/controllers/GasSaleActions";
 import { ATTENDANTS_GAS, CASHIERS, GAS_RETAIL_PRICE_PER_KG, formatNaira } from '@/mockData';
 import { toast } from 'sonner';
 
-const STATIC_GAS_SALES: GasSale[] = [
-  {
-    id: 'gas-1',
-    receiptNumber: 'GAS-20260621-001',
-    date: '2026-06-21T10:15:00.000Z',
-    customerName: 'Kemi Adebayo',
-    customerPhone: '+2348012345678',
-    cylinderSize: '12.5kg',
-    quantity: 12.5,
-    pricePerKg: GAS_RETAIL_PRICE_PER_KG,
-    amount: 125000,
-    paymentMethod: 'Cash',
-    attendant: 'Amina Yusuf',
-    cashier: 'Tunde Bassey',
-    remarks: 'Delivered within 20 mins'
-  },
-  {
-    id: 'gas-2',
-    receiptNumber: 'GAS-20260621-002',
-    date: '2026-06-21T11:40:00.000Z',
-    customerName: 'Ibrahim Musa',
-    customerPhone: '+2348098765432',
-    cylinderSize: '6kg',
-    quantity: 6,
-    pricePerKg: GAS_RETAIL_PRICE_PER_KG,
-    amount: 72000,
-    paymentMethod: 'POS',
-    attendant: 'Bola Okafor',
-    cashier: 'Grace Eze',
-    remarks: 'Customer requested fast refill'
-  },
-  {
-    id: 'gas-3',
-    receiptNumber: 'GAS-20260621-003',
-    date: '2026-06-21T13:05:00.000Z',
-    customerName: 'Ngozi Chukwu',
-    customerPhone: '+2347055544433',
-    cylinderSize: '25kg',
-    quantity: 25,
-    pricePerKg: GAS_RETAIL_PRICE_PER_KG,
-    amount: 250000,
-    paymentMethod: 'Bank Transfer',
-    attendant: 'Amina Yusuf',
-    cashier: 'Tunde Bassey',
-    remarks: 'Advance payment received'
-  }
-];
+type GasCylinderSize = CreateGasSaleInput['cylinderSize'];
+type GasPaymentMethod = CreateGasSaleInput['paymentMethod'];
+
+const CYLINDER_WEIGHTS: Record<GasCylinderSize, number> = {
+  '3kg': 3,
+  '5kg': 5,
+  '6kg': 6,
+  '12.5kg': 12.5,
+  '25kg': 25,
+  '50kg': 50,
+};
 
 export default function GasPOS() {
   const [currentRole] = useState('Administrator');
   const [currentUser] = useState('System');
-  const [sales, setSales] = useState<GasSale[]>(STATIC_GAS_SALES);
+
+  const [sales, setSales] = useState<GasSale[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   // Local active form state
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [cylinderSize, setCylinderSize] = useState<'3kg' | '5kg' | '6kg' | '12.5kg' | '25kg' | '50kg'>('12.5kg');
+  const [cylinderSize, setCylinderSize] = useState<GasCylinderSize>('12.5kg');
   const [quantity, setQuantity] = useState<number>(12.5); // Default to cylinder size
   const [pricePerKg, setPricePerKg] = useState<number>(GAS_RETAIL_PRICE_PER_KG);
-  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Bank Transfer' | 'POS'>('Cash');
+  const [paymentMethod, setPaymentMethod] = useState<GasPaymentMethod>('Cash');
   const [attendant, setAttendant] = useState(ATTENDANTS_GAS[0]);
   const [cashier, setCashier] = useState(CASHIERS[0]);
   const [remarks, setRemarks] = useState('');
@@ -90,29 +68,29 @@ export default function GasPOS() {
   const [activeReceipt, setActiveReceipt] = useState<GasSale | null>(null);
   const [printFormat, setPrintFormat] = useState<'thermal' | 'a4'>('thermal');
 
-  // Synchronize quantity when cylinderSize changes
   useEffect(() => {
-    const sizeMap: Record<string, number> = {
-      '3kg': 3,
-      '5kg': 5,
-      '6kg': 6,
-      '12.5kg': 12.5,
-      '25kg': 25,
-      '50kg': 50,
-    };
-    setQuantity(sizeMap[cylinderSize] || 12.5);
-  }, [cylinderSize]);
+    loadSales();
+  }, []);
 
-  // Handle auto calculation of receipt number
-  const nextReceiptNumber = (() => {
-    const today = new Date('2026-06-21');
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const prefix = `GAS-${yyyy}${mm}${dd}`;
-    const count = sales.filter(s => s.receiptNumber.startsWith(prefix)).length;
-    return `${prefix}-${String(count + 1).padStart(3, '0')}`;
-  })();
+  async function loadSales() {
+    setLoading(true);
+
+    const result = await GetGasSales();
+
+    if (result.success) {
+      setSales(result.sales);
+    } else {
+      toast.error(result.message);
+    }
+
+    setLoading(false);
+  }
+
+
+  const handleCylinderSizeChange = (nextSize: GasCylinderSize) => {
+    setCylinderSize(nextSize);
+    setQuantity(CYLINDER_WEIGHTS[nextSize] ?? 12.5);
+  };
 
   // Auto-calculated amount
   const totalAmount = Number((quantity * pricePerKg).toFixed(2));
@@ -121,8 +99,7 @@ export default function GasPOS() {
   const clearForm = () => {
     setCustomerName('');
     setCustomerPhone('');
-    setCylinderSize('12.5kg');
-    setQuantity(12.5);
+    handleCylinderSizeChange('12.5kg');
     setPricePerKg(GAS_RETAIL_PRICE_PER_KG);
     setPaymentMethod('Cash');
     setAttendant(ATTENDANTS_GAS[0]);
@@ -131,45 +108,58 @@ export default function GasPOS() {
   };
 
   // Submit and save transaction
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
+
     if (!customerName.trim()) {
-      toast('Please enter a Customer Name');
-      return;
-    }
-    if (quantity <= 0) {
-      toast('Quantity filled must be greater than 0');
-      return;
-    }
-    if (pricePerKg <= 0) {
-      toast('Price per KG must be greater than 0');
+      toast.error("Customer name is required.");
       return;
     }
 
-    const newSale: GasSale = {
-      id: 'gas-' + Date.now(),
-      receiptNumber: nextReceiptNumber,
-      date: new Date('2026-06-21T14:45:00').toISOString(),
-      customerName: customerName.trim(),
-      customerPhone: customerPhone.trim() || 'N/A',
+    if (quantity <= 0) {
+      toast.error("Quantity must be greater than zero.");
+      return;
+    }
+
+    if (pricePerKg <= 0) {
+      toast.error("Invalid price.");
+      return;
+    }
+
+    setSaving(true);
+
+    const payload: CreateGasSaleInput = {
+      customerName,
+      customerPhone,
       cylinderSize,
       quantity,
       pricePerKg,
-      amount: totalAmount,
       paymentMethod,
       attendant,
       cashier,
-      remarks: remarks.trim()
+      remarks,
     };
 
-    setSales([newSale, ...sales]);
-    console.info(`Gas Transaction ${newSale.receiptNumber} Saved Successfully!`);
+    const result =
+      await CreateGasSales(payload);
 
-    // Auto-prompt thermal receipt modal
-    setActiveReceipt(newSale);
+    setSaving(false);
+
+    if (!result.success) {
+      toast.error(result.message);
+      return;
+    }
+
+    toast.success("Sale recorded.");
+
     clearForm();
-  };
 
+    setActiveReceipt(result.sale);
+
+    await loadSales();
+  };
   // Filter records based on role rules
   // Rule: Pump Attendant can only see their OWN records
   const filteredSalesByRole = currentRole === 'Pump Attendant'
@@ -217,9 +207,7 @@ export default function GasPOS() {
             <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">Record refills, manage cylinders & print immediate receipts</p>
           </div>
         </div>
-        <div className="hidden mt-4 md:mt-0 px-4 py-2 bg-slate-50 dark:bg-slate-700/40 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300">
-          TICKET AUTO-SEQUENCE: <span className="font-mono text-orange-600 dark:text-orange-400 font-bold">{nextReceiptNumber}</span>
-        </div>
+       
       </div>
 
       {/* Grid of Sales Form + Active Table */}
@@ -237,9 +225,9 @@ export default function GasPOS() {
                 <label className="text-xs font-semibold text-slate-600 dark:text-gray-300 flex items-center gap-1">
                   <UserIcon className="w-3.5 h-3.5 text-slate-400" /> Customer Name *
                 </label>
-                <input 
-                  type="text" 
-                  value={customerName} 
+                <input
+                  type="text"
+                  value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="e.g. Kolawole Davies"
                   className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
@@ -252,24 +240,47 @@ export default function GasPOS() {
                 <label className="text-xs font-semibold text-slate-600 dark:text-gray-300 flex items-center gap-1">
                   <Phone className="w-3.5 h-3.5 text-slate-400" /> Phone Number
                 </label>
-                <input 
-                  type="text" 
-                  value={customerPhone} 
+                <input
+                  type="text"
+                  value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="e.g. +2348012345678"
                   className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
               </div>
 
+              
+              {/* Price per KG & Total (Side-by-side) */}
+              <div className="grid grid-cols-2 gap-3" id="price-total-grid">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-600 dark:text-gray-300 flex items-center gap-1">
+                    <DollarSign className="w-3.5 h-3.5 text-slate-400" /> Price/KG (₦)
+                  </label>
+                  <input
+                    type="number"
+                    value={pricePerKg}
+                    onChange={(e) => setPricePerKg(Math.max(0, Number(e.target.value)))}
+                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                    required
+                    disabled
+                  />
+                </div>
+
+                <div className="p-2 bg-slate-50 dark:bg-slate-700/20 rounded-lg flex flex-col justify-center">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Total Bill</span>
+                  <span className="text-base font-bold text-orange-600 dark:text-orange-400 truncate">{formatNaira(totalAmount)}</span>
+                </div>
+              </div>
+
               {/* Cylinder Size and Quantity Grid */}
               <div className="grid grid-cols-2 gap-3" id="cylinder-qty-grid">
-                <div className="space-y-1">
+                <div className="hidden space-y-1">
                   <label className="text-xs font-semibold text-slate-600 dark:text-gray-300 flex items-center gap-1">
                     <Layers className="w-3.5 h-3.5 text-slate-400" /> Cylinder Size
                   </label>
                   <select
                     value={cylinderSize}
-                    onChange={(e) => setCylinderSize(e.target.value as any)}
+                    onChange={(e) => handleCylinderSizeChange(e.target.value as GasCylinderSize)}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500"
                   >
                     <option value="3kg">3 kg</option>
@@ -281,14 +292,16 @@ export default function GasPOS() {
                   </select>
                 </div>
 
+                
+
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-600 dark:text-gray-300 flex items-center gap-1">
                     <Scale className="w-3.5 h-3.5 text-slate-400" /> Weight filled (KG)
                   </label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     step="0.1"
-                    value={quantity} 
+                    value={quantity}
                     onChange={(e) => setQuantity(Math.max(0, Number(e.target.value)))}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                     required
@@ -296,26 +309,6 @@ export default function GasPOS() {
                 </div>
               </div>
 
-              {/* Price per KG & Total (Side-by-side) */}
-              <div className="grid grid-cols-2 gap-3" id="price-total-grid">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-600 dark:text-gray-300 flex items-center gap-1">
-                    <DollarSign className="w-3.5 h-3.5 text-slate-400" /> Price/KG (₦)
-                  </label>
-                  <input 
-                    type="number" 
-                    value={pricePerKg} 
-                    onChange={(e) => setPricePerKg(Math.max(0, Number(e.target.value)))}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-                    required
-                  />
-                </div>
-
-                <div className="p-2 bg-slate-50 dark:bg-slate-700/20 rounded-lg flex flex-col justify-center">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Total Bill</span>
-                  <span className="text-base font-bold text-orange-600 dark:text-orange-400 truncate">{formatNaira(totalAmount)}</span>
-                </div>
-              </div>
 
               {/* Payment Method */}
               <div className="space-y-1">
@@ -325,12 +318,11 @@ export default function GasPOS() {
                     <button
                       key={method}
                       type="button"
-                      onClick={() => setPaymentMethod(method as any)}
-                      className={`py-1.5 text-xs rounded-lg font-semibold border transition-all ${
-                        paymentMethod === method 
-                          ? 'bg-orange-500 text-white border-orange-500 shadow-xs' 
-                          : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                      }`}
+                      onClick={() => setPaymentMethod(method as GasPaymentMethod)}
+                      className={`py-1.5 text-xs rounded-lg font-semibold border transition-all ${paymentMethod === method
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
                     >
                       {method}
                     </button>
@@ -390,9 +382,18 @@ export default function GasPOS() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm shadow-orange-500/20"
+                  disabled={saving}
+                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-orange-400 text-white text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm shadow-orange-500/20"
                 >
-                  <CheckCircle className="w-3.5 h-3.5" /> Save Sale
+                  {saving ? (
+                    <>
+                      <LoaderCircle className="w-3.5 h-3.5 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-3.5 h-3.5" /> Save Sale
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -409,6 +410,7 @@ export default function GasPOS() {
                 <p className="text-xs text-slate-400 mt-1">
                   {currentRole === 'Pump Attendant' ? `Showing your custom logs only (Attendant: ${currentUser})` : 'All gas plant sales accounts'}
                 </p>
+                {loading && <p className="text-[11px] text-orange-600 dark:text-orange-400 mt-1">Loading recent gas sales…</p>}
               </div>
 
               <div className="flex flex-wrap items-center gap-2" id="gas-filters-group">
@@ -496,7 +498,7 @@ export default function GasPOS() {
                     </tr>
                   ) : (
                     searchedSales.map((sale) => (
-                      <tr key={sale.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <tr key={sale._id || sale.receiptNumber} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                         <td className="p-3 font-mono font-medium text-blue-600 dark:text-blue-400 shrink-0">{sale.receiptNumber}</td>
                         <td className="p-3">
                           <div className="font-semibold">{sale.customerName}</div>
@@ -506,13 +508,12 @@ export default function GasPOS() {
                         <td className="p-3">{sale.quantity} kg</td>
                         <td className="p-3 font-bold">{formatNaira(sale.amount)}</td>
                         <td className="p-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            sale.paymentMethod === 'Cash' 
-                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' 
-                              : sale.paymentMethod === 'POS'
-                                ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${sale.paymentMethod === 'Cash'
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                            : sale.paymentMethod === 'POS'
+                              ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                              : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300'
+                            }`}>
                             {sale.paymentMethod}
                           </span>
                         </td>
@@ -527,11 +528,35 @@ export default function GasPOS() {
                           </button>
                           {(currentRole === 'Administrator' || currentRole === 'Cashier') && (
                             <button
-                              onClick={() => {
-                                if (confirm('Are you certain you wish to purge this transaction file?')) {
-                                  setSales(prev => prev.filter(item => item.id !== sale.id));
-                                  console.info('Transaction file successfully deleted.');
+                              onClick={async () => {
+
+                                if (
+                                  !confirm(
+                                    "Delete this transaction?"
+                                  )
+                                ) return;
+
+                                const ok =
+                                  await DeleteGasSale(
+                                    sale._id ?? sale.receiptNumber
+                                  );
+
+                                if (ok.success) {
+
+                                  toast.success(
+                                    "Transaction deleted."
+                                  );
+
+                                  await loadSales();
+
+                                } else {
+
+                                  toast.error(
+                                    "Unable to delete transaction."
+                                  );
+
                                 }
+
                               }}
                               title="Delete Record"
                               className="p-1 text-slate-400 hover:text-red-500 rounded transition"
@@ -554,7 +579,7 @@ export default function GasPOS() {
       {activeReceipt && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" id="receipt-modal">
           <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg shadow-2xl relative flex flex-col max-h-[90vh]">
-            
+
             {/* Modal Header */}
             <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center bg-slate-50 dark:bg-slate-900 rounded-t-3xl">
               <div>
@@ -563,8 +588,8 @@ export default function GasPOS() {
                 </h3>
                 <p className="text-[10px] text-slate-500 font-mono mt-0.5">{activeReceipt.receiptNumber}</p>
               </div>
-              <button 
-                onClick={() => setActiveReceipt(null)} 
+              <button
+                onClick={() => setActiveReceipt(null)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-full transition"
               >
                 <X className="w-5 h-5" />
@@ -577,22 +602,20 @@ export default function GasPOS() {
                 <button
                   type="button"
                   onClick={() => setPrintFormat('thermal')}
-                  className={`px-3 py-1 rounded-md font-semibold border transition ${
-                    printFormat === 'thermal' 
-                      ? 'bg-blue-600 text-white border-blue-600' 
-                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
-                  }`}
+                  className={`hidden px-3 py-1 rounded-md font-semibold border transition ${printFormat === 'thermal'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                    }`}
                 >
                   Thermal Receipt (58mm)
                 </button>
                 <button
                   type="button"
                   onClick={() => setPrintFormat('a4')}
-                  className={`px-3 py-1 rounded-md font-semibold border transition ${
-                    printFormat === 'a4' 
-                      ? 'bg-blue-600 text-white border-blue-600' 
-                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
-                  }`}
+                  className={`hidden px-3 py-1 rounded-md font-semibold border transition ${printFormat === 'a4'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                    }`}
                 >
                   Corporate Letter / A4 Invoice
                 </button>
@@ -609,18 +632,17 @@ export default function GasPOS() {
 
             {/* PRINT WRAPPER: Matches class for windows media print */}
             <div className="p-6 overflow-y-auto flex-1 bg-slate-100/50 dark:bg-slate-900/20" id="receipt-print-wrapper">
-              <div 
-                id="receipt-print-area" 
-                className={`mx-auto bg-white text-black p-6 shadow-sm border border-slate-200 rounded-md font-mono ${
-                  printFormat === 'thermal' ? 'max-w-70 text-[10px]' : 'max-w-120 text-xs'
-                }`}
+              <div
+                id="receipt-print-area"
+                className={`mx-auto bg-white text-black p-6 shadow-sm border border-slate-200 rounded-md font-mono ${printFormat === 'thermal' ? 'max-w-70 text-[10px]' : 'max-w-120 text-xs'
+                  }`}
               >
-                
+
                 {/* BRAND LOGO AND ADDRESS */}
                 <div className="text-center space-y-1">
                   {/* Embedded Custom SVG Logo representing Gas & Carwash Combined */}
                   <svg className="w-10 h-10 mx-auto text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                   </svg>
                   <h2 className="text-sm font-bold tracking-tight uppercase">SBU GAS OIL CO. LTD</h2>
                   <p className="text-[9px] text-slate-600">Plot 104, Gas Plant Industrial Way, Lekki Phase 1, Lagos</p>
@@ -677,7 +699,7 @@ export default function GasPOS() {
 
                 {/* GRAND TOTAL ROW */}
                 <div className="border-t border-dashed border-gray-400 my-3"></div>
-                
+
                 <div className="space-y-1">
                   <div className="flex justify-between font-bold text-xs uppercase">
                     <span>Grand Total:</span>
@@ -710,7 +732,7 @@ export default function GasPOS() {
                 <div className="text-center space-y-1 text-[9px] text-slate-600">
                   <p className="font-bold uppercase">THANK YOU FOR YOUR PATRONAGE!</p>
                   <p>Check cylinder locks & keep well ventilated</p>
-                  <p>Powered by GasPlant & CarWash POS Hub</p>
+                  {/* <p>Powered by GasPlant & CarWash POS Hub</p> */}
                 </div>
 
               </div>

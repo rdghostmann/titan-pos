@@ -19,7 +19,7 @@ export default function ExcelIO() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Cooking Gas POS</BreadcrumbPage>
+            <BreadcrumbPage>Excel Offline Integration</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

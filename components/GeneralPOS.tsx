@@ -12,10 +12,13 @@ import {
   Percent,
   X,
   Check,
-  History
+  History,
+  Droplet
 } from 'lucide-react';
 import { Product, GeneralSale, SalesItem } from '@/types';
 import { formatNaira } from '@/mockData';
+import { PurseIcon } from '@hugeicons/core-free-icons';
+import { SuitcaseRollingIcon } from '@phosphor-icons/react';
 
 const STATIC_PRODUCTS: Product[] = [
   {
@@ -501,6 +504,22 @@ export default function GeneralPOS() {
 
   return (
     <div className="space-y-6" id="general-pos-container">
+ {/* Header Panel */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white dark:bg-gray-800 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-xs" id="carwash-header">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-blue-100 dark:bg-green-950/40 rounded-xl text-green-600 dark:text-green-400">
+            <SuitcaseRollingIcon className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">General Provision Sale</h1>
+            <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">Make entry for provison and services to queues & dispatch receipts</p>
+          </div>
+        </div>
+        <div className="hidden mt-4 md:mt-0 px-4 py-2 bg-slate-50 dark:bg-slate-700/40 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300">
+          TICKET AUTO-SEQUENCE: <span className="font-mono text-green-600 dark:text-green-400 font-bold">{nextReceiptNumber}</span>
+        </div>
+      </div>
+
       {/* Sub tabs configuration */}
       <div className="flex border-b border-slate-100 dark:border-slate-700/50 justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl">
         <div className="flex gap-1">

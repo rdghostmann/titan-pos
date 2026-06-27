@@ -8,7 +8,7 @@ export interface User {
 }
 
 export interface GasSale {
-  id: string;
+  _id: string;
   receiptNumber: string;
   date: string; // ISO string (e.g., "2026-06-21T14:45:00Z")
   customerName: string;
@@ -21,10 +21,12 @@ export interface GasSale {
   attendant: string;
   cashier: string;
   remarks: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CarWashSale {
-  id: string;
+  _id: string;
   receiptNumber: string;
   date: string; // ISO string
   customerName: string;
