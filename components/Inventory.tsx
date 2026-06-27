@@ -395,10 +395,10 @@ export default function Inventory() {
       </div>
 
       {/* KPI Cards section */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* TOTAL PRODUCTS */}
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-slate-100 dark:border-slate-700/50 flex items-center gap-4">
-          <div className="p-3 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 rounded-lg">
+        <div className="relative p-4 bg-white dark:bg-gray-800 rounded-xl border border-slate-100 dark:border-slate-700/50 flex items-center gap-4">
+          <div className="absolute right-4 top-4 p-3 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 rounded-lg">
             <Boxes className="w-6 h-6" />
           </div>
           <div>
@@ -410,7 +410,7 @@ export default function Inventory() {
         </div>
 
         {/* LOW STOCK ALERT CARDS */}
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-slate-100 dark:border-slate-700/50 flex items-center gap-4">
+        <div className="relative p-4 bg-white dark:bg-gray-800 rounded-xl border border-slate-100 dark:border-slate-700/50 flex items-center gap-4">
           <div className={`p-3 rounded-lg ${lowStockProducts.length > 0 ? 'bg-red-50 dark:bg-red-950 text-red-600' : 'bg-green-50 dark:bg-green-950 text-green-600'}`}>
             <AlertTriangle className="w-6 h-6" />
           </div>

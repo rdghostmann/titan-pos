@@ -19,7 +19,7 @@ export default function GeneralSalesPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>General Sales POS</BreadcrumbPage>
+            <BreadcrumbPage>Provision Retail</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

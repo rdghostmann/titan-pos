@@ -1,7 +1,7 @@
-import GeneralPOS from "@/components/GeneralPOS"
+import GeneralSalesPage from "./GeneralSalesPage"
 
 const page = () => {
-  return <GeneralPOS />
+  return <GeneralSalesPage />
 }
 
 export default page

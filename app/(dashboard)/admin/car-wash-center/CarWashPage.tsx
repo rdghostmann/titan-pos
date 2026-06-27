@@ -9,7 +9,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 
-export default function CookingGasPage() {
+export default function CarWashPage() {
   return (
     <div className="flex flex-1 flex-col">
       <Breadcrumb className="p-4 lg:px-6">
@@ -19,7 +19,7 @@ export default function CookingGasPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Cooking Gas POS</BreadcrumbPage>
+            <BreadcrumbPage>Car Wash POS</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

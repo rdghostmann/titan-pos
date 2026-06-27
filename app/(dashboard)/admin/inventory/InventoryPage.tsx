@@ -19,7 +19,7 @@ export default function FinancialAuditPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Cooking Gas POS</BreadcrumbPage>
+            <BreadcrumbPage>Stores Inventory</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

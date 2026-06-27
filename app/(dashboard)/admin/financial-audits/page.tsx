@@ -1,4 +1,4 @@
-import FinancialAuditPage from '../inventory/InventoryPage'
+import FinancialAuditPage from "./FinancialAuditPage"
 
 const page = () => {
   return <FinancialAuditPage />

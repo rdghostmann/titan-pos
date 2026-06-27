@@ -44,7 +44,7 @@ import Dashboard from '@/components/Dashboard';
 import GasPOS from '@/components/GasPOS';
 import CarWashPOS from '@/components/CarWashPOS';
 import Reporting from '@/components/Reporting';
-import ExcelIO from '@/components/ExcelIO';
+import ExcelIO from '@/app/(dashboard)/admin/excel/ExcelIO';
 import UserManagement from '@/components/UserManagement';
 import GeneralPOS from '@/components/GeneralPOS';
 import Inventory from '@/components/Inventory';
@@ -490,16 +490,7 @@ export default function Home() {
           )}
 
           {activeTab === 'inventory' && (
-            <Inventory
-              products={products}
-              stockLogs={stockLogs}
-              onAddProduct={handleAddProduct}
-              onUpdateProduct={handleUpdateProduct}
-              onDeleteProduct={handleDeleteProduct}
-              onAddStockLog={handleAddStockLog}
-              currentRole={currentRole}
-              currentUserName={currentName}
-            />
+            <Inventory />
           )}
 
           {activeTab === 'reports' && (

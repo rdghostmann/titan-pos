@@ -1,7 +1,7 @@
-import CarWashPOS from "@/components/CarWashPOS"
+import CarWashPage from "./CarWashPage"
 
 const page = () => {
-  return <CarWashPOS />
+  return <CarWashPage />
 }
 
 export default page

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import Reporting from "@/components/Reporting";
 
-export default function InventoryPage() {
+export default function FinancialAuditPage() {
   return (
     <div className="flex flex-1 flex-col">
       <Breadcrumb className="p-4 lg:px-6">
@@ -19,7 +19,7 @@ export default function InventoryPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Cooking Gas POS</BreadcrumbPage>
+            <BreadcrumbPage>Financial Audits</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
