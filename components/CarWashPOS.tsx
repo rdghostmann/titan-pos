@@ -13,60 +13,39 @@ import {
   Phone, 
   User as UserIcon, 
   Car, 
-  Clock, 
+  Clock,
+  LoaderCircle,
 } from 'lucide-react';
-import { CarWashSale } from '@/types';
+import type {
+  CarWashSale,
+  CreateCarWashSaleInput,
+} from "@/controllers/CarWashActions";
+import {
+  GetCarWashSales,
+  CreateCarWashSale,
+  DeleteCarWashSale,
+} from "@/controllers/CarWashActions";
 import { ATTENDANTS_CARWASH, CASHIERS, CARWASH_PRICING, formatNaira } from '@/mockData';
+import { toast } from 'sonner';
 
-const STATIC_CARWASH_SALES: CarWashSale[] = [
-  {
-    id: 'cw-1',
-    receiptNumber: 'CW-20260621-001',
-    date: '2026-06-21T09:20:00.000Z',
-    customerName: 'Ada Okafor',
-    customerPhone: '+2348050001122',
-    vehicleNumberPlate: 'KJA-345LK',
-    vehicleType: 'Sedan',
-    serviceType: 'Full Wash',
-    amount: 2500,
-    paymentMethod: 'Cash',
-    attendant: 'Bola Okafor',
-    cashier: 'Grace Eze',
-    timeIn: '09:20',
-    timeOut: '10:05',
-    remarks: 'Interior vacuum requested'
-  },
-  {
-    id: 'cw-2',
-    receiptNumber: 'CW-20260621-002',
-    date: '2026-06-21T12:10:00.000Z',
-    customerName: 'Tunde Salami',
-    customerPhone: '+2348022233344',
-    vehicleNumberPlate: 'ABC-123XY',
-    vehicleType: 'SUV',
-    serviceType: 'Waxing',
-    amount: 5500,
-    paymentMethod: 'POS',
-    attendant: 'Amina Yusuf',
-    cashier: 'Tunde Bassey',
-    timeIn: '12:10',
-    timeOut: '12:55',
-    remarks: 'Premium wax package'
-  }
-];
+type CarWashServiceType = CreateCarWashSaleInput['serviceType'];
+type CarWashPaymentMethod = CreateCarWashSaleInput['paymentMethod'];
+type CarWashVehicleType = CreateCarWashSaleInput['vehicleType'];
 
 export default function CarWashPOS() {
   const [currentRole] = useState('Administrator');
   const [currentUser] = useState('System');
-  const [sales, setSales] = useState<CarWashSale[]>(STATIC_CARWASH_SALES);
+  const [sales, setSales] = useState<CarWashSale[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   // Local active form state
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [vehicleNumberPlate, setVehicleNumberPlate] = useState('');
-  const [vehicleType, setVehicleType] = useState<'Sedan' | 'SUV' | 'Truck' | 'Bus' | 'Motorcycle'>('Sedan');
-  const [serviceType, setServiceType] = useState<'Exterior Wash' | 'Interior Wash' | 'Full Wash' | 'Engine Wash' | 'Waxing' | 'Detailing'>('Full Wash');
+  const [vehicleType, setVehicleType] = useState<CarWashVehicleType>('Sedan');
+  const [serviceType, setServiceType] = useState<CarWashServiceType>('Full Wash');
   const [amount, setAmount] = useState<number>(2500); // Dynamic trigger based on selection
-  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Bank Transfer' | 'POS'>('Cash');
+  const [paymentMethod, setPaymentMethod] = useState<CarWashPaymentMethod>('Cash');
   const [attendant, setAttendant] = useState(ATTENDANTS_CARWASH[0]);
   const [cashier, setCashier] = useState(CASHIERS[0]);
   const [timeIn, setTimeIn] = useState('');
@@ -81,6 +60,22 @@ export default function CarWashPOS() {
   // Active receipt for printing modal
   const [activeReceipt, setActiveReceipt] = useState<CarWashSale | null>(null);
   const [printFormat, setPrintFormat] = useState<'thermal' | 'a4'>('thermal');
+
+  // Load sales on mount
+  useEffect(() => {
+    loadSales();
+  }, []);
+
+  async function loadSales() {
+    setLoading(true);
+    const result = await GetCarWashSales();
+    if (result.success) {
+      setSales(result.sales);
+    } else {
+      toast.error(result.message);
+    }
+    setLoading(false);
+  }
 
   // Auto initialize current hour/minute
   useEffect(() => {
@@ -103,9 +98,7 @@ export default function CarWashPOS() {
     }
   }, [vehicleType, serviceType]);
 
-  const showToast = (msg: string, type?: 'success' | 'error' | 'info') => {
-    console.info(`[${type ?? 'info'}] ${msg}`);
-  };
+
 
   // Handle auto calculation of receipt number
   const nextReceiptNumber = (() => {
@@ -138,27 +131,26 @@ export default function CarWashPOS() {
   };
 
   // Submit and save transaction
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {
-      showToast('Please enter a Customer Name', 'error');
+      toast.error('Please enter a Customer Name');
       return;
     }
     if (!vehicleNumberPlate.trim()) {
-      showToast('Please specify the Vehicle Plate Number', 'error');
+      toast.error('Please specify the Vehicle Plate Number');
       return;
     }
     if (amount <= 0) {
-      showToast('Amount must be positive', 'error');
+      toast.error('Amount must be positive');
       return;
     }
 
-    const newSale: CarWashSale = {
-      id: 'cw-' + Date.now(),
-      receiptNumber: nextReceiptNumber,
-      date: new Date('2026-06-21T14:45:00').toISOString(),
+    setSaving(true);
+
+    const payload: CreateCarWashSaleInput = {
       customerName: customerName.trim(),
-      customerPhone: customerPhone.trim() || 'N/A',
+      customerPhone: customerPhone.trim() || '',
       vehicleNumberPlate: vehicleNumberPlate.trim().toUpperCase(),
       vehicleType,
       serviceType,
@@ -166,17 +158,23 @@ export default function CarWashPOS() {
       paymentMethod,
       attendant,
       cashier,
-      timeIn: timeIn || 'N/A',
-      timeOut: timeOut || 'N/A',
-      remarks: remarks.trim()
+      timeIn: timeIn || '00:00',
+      timeOut: timeOut || '00:00',
+      remarks: remarks.trim(),
     };
 
-    setSales(prev => [newSale, ...prev]);
-    showToast(`Car Wash ticket ${newSale.receiptNumber} Saved Successfully!`, 'success');
+    const result = await CreateCarWashSale(payload);
+    setSaving(false);
 
-    // Auto-prompt thermal receipt modal
-    setActiveReceipt(newSale);
+    if (!result.success) {
+      toast.error(result.message);
+      return;
+    }
+
+    toast.success('Car Wash ticket saved successfully!');
+    setActiveReceipt(result.sale);
     clearForm();
+    await loadSales();
   };
 
   // Conditional records list based on active role
@@ -251,6 +249,7 @@ export default function CarWashPOS() {
                   placeholder="e.g. Chief Gbolahan"
                   className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
                   required
+                  disabled={saving}
                 />
               </div>
 
@@ -265,6 +264,7 @@ export default function CarWashPOS() {
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="e.g. +234812334455"
                   className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                  disabled={saving}
                 />
               </div>
 
@@ -280,6 +280,7 @@ export default function CarWashPOS() {
                   placeholder="e.g. KJA-345LK"
                   className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
                   required
+                  disabled={saving}
                 />
               </div>
 
@@ -289,8 +290,9 @@ export default function CarWashPOS() {
                   <label className="text-xs font-semibold text-slate-600 dark:text-gray-300">Vehicle Type</label>
                   <select
                     value={vehicleType}
-                    onChange={(e) => setVehicleType(e.target.value as any)}
+                    onChange={(e) => setVehicleType(e.target.value as CarWashVehicleType)}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none"
+                    disabled={saving}
                   >
                     <option value="Sedan">Sedan</option>
                     <option value="SUV">SUV</option>
@@ -304,8 +306,9 @@ export default function CarWashPOS() {
                   <label className="text-xs font-semibold text-slate-600 dark:text-gray-300">Service Category</label>
                   <select
                     value={serviceType}
-                    onChange={(e) => setServiceType(e.target.value as any)}
+                    onChange={(e) => setServiceType(e.target.value as CarWashServiceType)}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none"
+                    disabled={saving}
                   >
                     <option value="Exterior Wash">Exterior Wash</option>
                     <option value="Interior Wash">Interior Wash</option>
@@ -327,6 +330,7 @@ export default function CarWashPOS() {
                     onChange={(e) => setAmount(Math.max(0, Number(e.target.value)))}
                     className="w-full text-sm px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
                     required
+                    disabled={saving}
                   />
                 </div>
 
@@ -434,15 +438,25 @@ export default function CarWashPOS() {
                 <button
                   type="button"
                   onClick={clearForm}
-                  className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center gap-1.5"
+                  disabled={saving}
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" /> Reset Form
+                  <RotateCcw className="w-3.5 h-3.5" /> Clear Form
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm shadow-green-500/20"
+                  disabled={saving}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-green-400 text-white text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5 shadow-sm shadow-green-500/20"
                 >
-                  <CheckCircle className="w-3.5 h-3.5" /> Save Job
+                  {saving ? (
+                    <>
+                      <LoaderCircle className="w-3.5 h-3.5 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-3.5 h-3.5" /> Save Ticket
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -582,9 +596,14 @@ export default function CarWashPOS() {
                           </button>
                           {(currentRole === 'Administrator' || currentRole === 'Cashier') && (
                             <button
-                              onClick={() => {
-                                if (confirm('Are you absolutely certain you wish to wipe this service account record?')) {
-          
+                              onClick={async () => {
+                                if (!confirm('Delete this service record?')) return;
+                                const ok = await DeleteCarWashSale(sale._id ?? sale.receiptNumber);
+                                if (ok.success) {
+                                  toast.success('Service record deleted.');
+                                  await loadSales();
+                                } else {
+                                  toast.error('Unable to delete service record.');
                                 }
                               }}
                               className="p-1 text-slate-400 hover:text-red-500 rounded transition"
