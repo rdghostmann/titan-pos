@@ -97,13 +97,14 @@ const CATEGORIES = [
   'Services'
 ] as const;
 
+type PosTab = 'checkout' | 'history' | 'checkout-cart';
+
 export default function GeneralPOS() {
   const [products, setProducts] = useState<Product[]>(STATIC_PRODUCTS);
   const [sales, setSales] = useState<GeneralSale[]>(STATIC_SALES);
-  const [currentRole] = useState('Administrator');
   const [currentUserName] = useState('System');
   // State
-  const [activeTab, setActiveTab] = useState<'checkout' | 'history'>('checkout');
+  const [activeTab, setActiveTab] = useState<PosTab>('checkout');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
@@ -304,6 +305,200 @@ export default function GeneralPOS() {
 
   const uniqueCashiers = Array.from(new Set(sales.map(s => s.cashierName)));
 
+  const renderCheckoutCartPanel = (extraClassName = '') => (
+    <form onSubmit={handleCheckout} className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/50 flex flex-col h-187.5 justify-between overflow-hidden ${extraClassName}`.trim()}>
+      {/* Header */}
+      <div className="p-4 border-b border-slate-50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-700/40 flex justify-between items-center">
+        <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-300">
+          <ShoppingCart className="w-5 h-5" />
+          <span className="text-sm font-bold">POS Active Checkout Cart</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="bg-indigo-100 text-indigo-800 p-1 px-2.5 rounded font-bold text-xs">{cart.length} Items</span>
+          {cart.length > 0 && (
+            <button
+              type="button"
+              title="Clear Cart Items"
+              onClick={() => {
+                if (confirm('Clear shopping cart?')) setCart([]);
+              }}
+              className="p-1 px-2 bg-red-50 hover:bg-red-100 text-red-600 rounded text-xs transition"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Shopping List view */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {cart.length === 0 ? (
+          <div className="h-full flex flex-col justify-center items-center text-slate-400 py-12 space-y-2">
+            <ShoppingCart className="w-12 h-12 text-slate-200 stroke-[1.5]" />
+            <p className="text-xs font-semibold">Ready to scan or select products.</p>
+            <p className="text-[10px] text-slate-400 max-w-xs text-center">Items clicked on catalogs or scanned with barcodes automatically render calculations in checkout.</p>
+          </div>
+        ) : (
+          cart.map(item => (
+            <div key={item.product.id} className="p-3 bg-slate-50 dark:bg-slate-700/20 rounded-xl flex justify-between items-center text-xs">
+              <div className="space-y-0.5 truncate max-w-45">
+                <h5 className="font-bold text-slate-900 dark:text-white truncate" title={item.product.name}>{item.product.name}</h5>
+                <p className="text-slate-400 font-mono text-[10px]" title="Price Basis">{formatNaira(item.product.sellingPrice)} per {item.product.unitType}</p>
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center bg-white dark:bg-slate-700 rounded-lg shadow-2xs border border-slate-100 dark:border-slate-600">
+                  <button
+                    type="button"
+                    onClick={() => updateCartQty(item.product.id, -1)}
+                    className="p-1 px-2 text-slate-500 hover:text-indigo-600"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="px-2 font-bold font-mono text-slate-950 dark:text-white text-sm">{item.quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateCartQty(item.product.id, 1)}
+                    className="p-1 px-2 text-slate-500 hover:text-indigo-600"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="text-right w-20">
+                  <p className="font-bold text-slate-900 dark:text-white font-mono">{formatNaira(item.product.sellingPrice * item.quantity)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeFromCart(item.product.id)}
+                  className="p-1 bg-red-50 dark:bg-red-950/40 text-red-600 text-xs rounded hover:bg-red-100 transition"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Calculations and checkout blocks */}
+      <div className="p-4 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700/50 space-y-4">
+
+        {/* Formulas Panel */}
+        <div className="space-y-2 text-xs">
+          {/* Basic Subtotal */}
+          <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
+            <span>Subtotal</span>
+            <span className="font-mono font-bold">{formatNaira(totals.subtotal)}</span>
+          </div>
+
+          {/* Discount input in Naira */}
+          <div className="hidden justify-between items-center gap-4 text-slate-600">
+            <span className="flex items-center gap-1 shrink-0">Discount Amount (₦)</span>
+            <div className="relative w-32 shrink-0">
+              <Percent className="absolute left-2.5 top-2 w-3.5 h-3.5 text-slate-400" />
+              <input
+                type="number"
+                min={0}
+                max={totals.subtotal}
+                value={discountInput}
+                onChange={(e) => setDiscountInput(Number(e.target.value))}
+                className="w-full pl-7 pr-2 py-1.5 bg-white dark:bg-slate-700 border border-slate-100 rounded text-right font-bold font-mono outline-none focus:ring-1 focus:ring-indigo-600"
+              />
+            </div>
+          </div>
+
+          {/* Grand total */}
+          <div className="flex justify-between items-center text-sm font-black border-t border-b border-slate-100 dark:border-slate-700/50 py-2 text-slate-900 dark:text-white">
+            <span>GRAND TOTAL</span>
+            <span className="font-mono text-base text-indigo-700 dark:text-indigo-300">{formatNaira(totals.grandTotal)}</span>
+          </div>
+        </div>
+
+        {/* Checkout Payment details */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('Cash')}
+              className={`py-2 rounded-lg font-bold text-[10px] uppercase transition ${paymentMethod === 'Cash' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border'}`}
+            >
+              Cash
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('Bank Transfer')}
+              className={`py-2 rounded-lg font-bold text-[10px] uppercase transition ${paymentMethod === 'Bank Transfer' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border'}`}
+            >
+              Bank Transfer
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('POS')}
+              className={`py-2 rounded-lg font-bold text-[10px] uppercase transition ${paymentMethod === 'POS' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border'}`}
+            >
+              POS Split
+            </button>
+          </div>
+
+          {/* Cash fields */}
+          {paymentMethod === 'Cash' && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center gap-4">
+                <span className="text-xs text-slate-500 font-bold uppercase shrink-0">Cash Received (₦)</span>
+                <input
+                  type="number"
+                  required
+                  min={0}
+                  value={cashReceivedInput}
+                  onChange={(e) => setCashReceivedInput(Number(e.target.value))}
+                  className="w-40 p-2 bg-white dark:bg-slate-700 border border-slate-100 rounded text-right font-black font-mono text-base focus:ring-1 focus:ring-indigo-600 outline-none"
+                />
+              </div>
+
+              {/* Denomination Quick selectors */}
+              <div className="flex flex-wrap gap-1.5 justify-end">
+                {[1000, 2000, 5000, 10000, 20000, 50000].map(den => (
+                  <button
+                    key={den}
+                    type="button"
+                    onClick={() => applyCashDenomination(den)}
+                    className="text-[9px] font-mono px-2 py-1 bg-white hover:bg-slate-100 border border-slate-100 dark:border-slate-600 rounded"
+                  >
+                    ₦{den.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+
+              {/* Change Return calculation */}
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">Balance Returned (Change):</span>
+                <span className={`font-mono font-black border-b border-dashed ${cashReceivedInput >= totals.grandTotal ? 'text-green-600 text-sm' : 'text-slate-400'
+                  }`}>
+                  {formatNaira(totals.balance)}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Checkout trigger */}
+          <button
+            type="submit"
+            id="btn-cart-pay"
+            disabled={
+              cart.length === 0 ||
+              (paymentMethod === 'Cash' && cashReceivedInput < totals.grandTotal)
+            }
+            className="w-full py-3 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition rounded-xl flex items-center justify-center gap-2 shadow disabled:bg-slate-350 disabled:opacity-40 disabled:cursor-not-allowed select-none cursor-pointer"
+          >
+            <Check className="w-5 h-5" /> Pay & Generate Receipt
+          </button>
+        </div>
+
+      </div>
+    </form>
+  );
+
   return (
     <div className="space-y-6" id="general-pos-container">
       {/* Sub tabs configuration */}
@@ -331,8 +526,8 @@ export default function GeneralPOS() {
         </div>
 
         <button
-            onClick={() => setActiveTab('checkout-cart')}
-            className={`border relative px-4 py-2 text-xs font-bold rounded-lg transition flex items-center gap-1.5 ${activeTab === 'checkout-cart'
+            onClick={() => setActiveTab(activeTab === 'checkout-cart' ? 'checkout' : 'checkout-cart')}
+            className={`border relative px-4 py-2 text-xs font-bold rounded-lg transition flex items-center gap-1.5 lg:hidden ${activeTab === 'checkout-cart'
                 ? 'bg-indigo-600 text-white'
                 : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50'
               }`}
@@ -345,7 +540,7 @@ export default function GeneralPOS() {
 
       </div>
 
-      {activeTab === 'checkout' ? (
+      {(activeTab === 'checkout' || activeTab === 'checkout-cart') ? (
         /* POS CHECKOUT MODULE SPLIT SCREEN */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="pos-split-panel">
 
@@ -455,199 +650,29 @@ export default function GeneralPOS() {
           </div>
 
           {/* RHS: Active Checkout Cart (lg:span-5) */}
-          <div className="lg:col-span-5" id="pos-rhs-checkout">
-            <form onSubmit={handleCheckout} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/50 flex flex-col h-187.5 justify-between overflow-hidden">
-              {/* Header */}
-              <div className="p-4 border-b border-slate-50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-700/40 flex justify-between items-center">
-                <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-300">
-                  <ShoppingCart className="w-5 h-5" />
-                  <span className="text-sm font-bold">POS Active Checkout Cart</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="bg-indigo-100 text-indigo-800 p-1 px-2.5 rounded font-bold text-xs">{cart.length} Items</span>
-                  {cart.length > 0 && (
-                    <button
-                      type="button"
-                      title="Clear Cart Items"
-                      onClick={() => {
-                        if (confirm('Clear shopping cart?')) setCart([]);
-                      }}
-                      className="p-1 px-2 bg-red-50 hover:bg-red-100 text-red-600 rounded text-xs transition"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </div>
+          <div className="hidden lg:block lg:col-span-5" id="pos-rhs-checkout">
+            {renderCheckoutCartPanel()}
+          </div>
 
-              {/* Shopping List view */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {cart.length === 0 ? (
-                  <div className="h-full flex flex-col justify-center items-center text-slate-400 py-12 space-y-2">
-                    <ShoppingCart className="w-12 h-12 text-slate-200 stroke-[1.5]" />
-                    <p className="text-xs font-semibold">Ready to scan or select products.</p>
-                    <p className="text-[10px] text-slate-400 max-w-xs text-center">Items clicked on catalogs or scanned with barcodes automatically render calculations in checkout.</p>
+          {activeTab === 'checkout-cart' && (
+            <div className="fixed inset-0 z-50 lg:hidden">
+              <div className="absolute inset-0 bg-black/50" onClick={() => setActiveTab('checkout')} />
+              <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl border-l border-slate-200 dark:border-slate-700 overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 p-4">
+                  <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-300">
+                    <ShoppingCart className="w-5 h-5" />
+                    <span className="text-sm font-bold">POS Active Checkout Cart</span>
                   </div>
-                ) : (
-                  cart.map(item => (
-                    <div key={item.product.id} className="p-3 bg-slate-50 dark:bg-slate-700/20 rounded-xl flex justify-between items-center text-xs">
-                      <div className="space-y-0.5 truncate max-w-45">
-                        <h5 className="font-bold text-slate-900 dark:text-white truncate" title={item.product.name}>{item.product.name}</h5>
-                        <p className="text-slate-400 font-mono text-[10px]" title="Price Basis">{formatNaira(item.product.sellingPrice)} per {item.product.unitType}</p>
-                      </div>
-
-                      {/* Controls */}
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center bg-white dark:bg-slate-700 rounded-lg shadow-2xs border border-slate-100 dark:border-slate-600">
-                          <button
-                            type="button"
-                            onClick={() => updateCartQty(item.product.id, -1)}
-                            className="p-1 px-2 text-slate-500 hover:text-indigo-600"
-                          >
-                            <Minus className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="px-2 font-bold font-mono text-slate-950 dark:text-white text-sm">{item.quantity}</span>
-                          <button
-                            type="button"
-                            onClick={() => updateCartQty(item.product.id, 1)}
-                            className="p-1 px-2 text-slate-500 hover:text-indigo-600"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                        <div className="text-right w-20">
-                          <p className="font-bold text-slate-900 dark:text-white font-mono">{formatNaira(item.product.sellingPrice * item.quantity)}</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeFromCart(item.product.id)}
-                          className="p-1 bg-red-50 dark:bg-red-950/40 text-red-600 text-xs rounded hover:bg-red-100 transition"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Calculations and checkout blocks */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700/50 space-y-4">
-
-                {/* Formulas Panel */}
-                <div className="space-y-2 text-xs">
-                  {/* Basic Subtotal */}
-                  <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
-                    <span>Subtotal</span>
-                    <span className="font-mono font-bold">{formatNaira(totals.subtotal)}</span>
-                  </div>
-
-                  {/* Discount input in Naira */}
-                  <div className="hidden justify-between items-center gap-4 text-slate-600">
-                    <span className="flex items-center gap-1 shrink-0">Discount Amount (₦)</span>
-                    <div className="relative w-32 shrink-0">
-                      <Percent className="absolute left-2.5 top-2 w-3.5 h-3.5 text-slate-400" />
-                      <input
-                        type="number"
-                        min={0}
-                        max={totals.subtotal}
-                        value={discountInput}
-                        onChange={(e) => setDiscountInput(Number(e.target.value))}
-                        className="w-full pl-7 pr-2 py-1.5 bg-white dark:bg-slate-700 border border-slate-100 rounded text-right font-bold font-mono outline-none focus:ring-1 focus:ring-indigo-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Grand total */}
-                  <div className="flex justify-between items-center text-sm font-black border-t border-b border-slate-100 dark:border-slate-700/50 py-2 text-slate-900 dark:text-white">
-                    <span>GRAND TOTAL</span>
-                    <span className="font-mono text-base text-indigo-700 dark:text-indigo-300">{formatNaira(totals.grandTotal)}</span>
-                  </div>
-                </div>
-
-                {/* Checkout Payment details */}
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('Cash')}
-                      className={`py-2 rounded-lg font-bold text-[10px] uppercase transition ${paymentMethod === 'Cash' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border'}`}
-                    >
-                      Cash
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('Bank Transfer')}
-                      className={`py-2 rounded-lg font-bold text-[10px] uppercase transition ${paymentMethod === 'Bank Transfer' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border'}`}
-                    >
-                      Bank Transfer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('POS')}
-                      className={`py-2 rounded-lg font-bold text-[10px] uppercase transition ${paymentMethod === 'POS' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border'}`}
-                    >
-                      POS Split
-                    </button>
-                  </div>
-
-                  {/* Cash fields */}
-                  {paymentMethod === 'Cash' && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center gap-4">
-                        <span className="text-xs text-slate-500 font-bold uppercase shrink-0">Cash Received (₦)</span>
-                        <input
-                          type="number"
-                          required
-                          min={0}
-                          value={cashReceivedInput}
-                          onChange={(e) => setCashReceivedInput(Number(e.target.value))}
-                          className="w-40 p-2 bg-white dark:bg-slate-700 border border-slate-100 rounded text-right font-black font-mono text-base focus:ring-1 focus:ring-indigo-600 outline-none"
-                        />
-                      </div>
-
-                      {/* Denomination Quick selectors */}
-                      <div className="flex flex-wrap gap-1.5 justify-end">
-                        {[1000, 2000, 5000, 10000, 20000, 50000].map(den => (
-                          <button
-                            key={den}
-                            type="button"
-                            onClick={() => applyCashDenomination(den)}
-                            className="text-[9px] font-mono px-2 py-1 bg-white hover:bg-slate-100 border border-slate-100 dark:border-slate-600 rounded"
-                          >
-                            ₦{den.toLocaleString()}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Change Return calculation */}
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">Balance Returned (Change):</span>
-                        <span className={`font-mono font-black border-b border-dashed ${cashReceivedInput >= totals.grandTotal ? 'text-green-600 text-sm' : 'text-slate-400'
-                          }`}>
-                          {formatNaira(totals.balance)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Checkout trigger */}
-                  <button
-                    type="submit"
-                    id="btn-cart-pay"
-                    disabled={
-                      cart.length === 0 ||
-                      (paymentMethod === 'Cash' && cashReceivedInput < totals.grandTotal)
-                    }
-                    className="w-full py-3 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition rounded-xl flex items-center justify-center gap-2 shadow disabled:bg-slate-350 disabled:opacity-40 disabled:cursor-not-allowed select-none cursor-pointer"
-                  >
-                    <Check className="w-5 h-5" /> Pay & Generate Receipt
+                  <button type="button" onClick={() => setActiveTab('checkout')} className="p-2 text-slate-500 hover:text-slate-700">
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
-
+                <div className="p-4">
+                  {renderCheckoutCartPanel('h-[calc(100vh-7rem)] rounded-none border-0 shadow-none')}
+                </div>
               </div>
-            </form>
-          </div>
+            </div>
+          )}
         </div>
       ) : (
         /* PAST TRANSACTIONS ARCHIVE TABLE */
