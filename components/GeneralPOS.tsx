@@ -659,7 +659,7 @@ export default function GeneralPOS() {
               <div className="absolute inset-0 bg-black/50" onClick={() => setActiveTab('checkout')} />
               <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl border-l border-slate-200 dark:border-slate-700 overflow-y-auto">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 p-4">
-                  <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-300">
+                  <div className="invisible items-center gap-2 text-indigo-600 dark:text-indigo-300">
                     <ShoppingCart className="w-5 h-5" />
                     <span className="text-sm font-bold">POS Active Checkout Cart</span>
                   </div>
