@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   Flame, 
   Search, 
-  Plus, 
   Trash2, 
   Printer, 
   RotateCcw, 
@@ -14,11 +13,10 @@ import {
   Layers, 
   Scale, 
   DollarSign, 
-  HelpCircle,
-  FileText
 } from 'lucide-react';
 import { GasSale } from '@/types';
 import { ATTENDANTS_GAS, CASHIERS, GAS_RETAIL_PRICE_PER_KG, formatNaira } from '@/mockData';
+import { toast } from 'sonner';
 
 const STATIC_GAS_SALES: GasSale[] = [
   {
@@ -136,15 +134,15 @@ export default function GasPOS() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {
-      showToast('Please enter a Customer Name', 'error');
+      toast('Please enter a Customer Name');
       return;
     }
     if (quantity <= 0) {
-      showToast('Quantity filled must be greater than 0', 'error');
+      toast('Quantity filled must be greater than 0');
       return;
     }
     if (pricePerKg <= 0) {
-      showToast('Price per KG must be greater than 0', 'error');
+      toast('Price per KG must be greater than 0');
       return;
     }
 

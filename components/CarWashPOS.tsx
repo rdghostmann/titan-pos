@@ -11,12 +11,8 @@ import {
   X, 
   Phone, 
   User as UserIcon, 
-  Tag, 
-  FileText, 
   Car, 
-  Layers, 
   Clock, 
-  HelpCircle 
 } from 'lucide-react';
 import { CarWashSale } from '@/types';
 import { ATTENDANTS_CARWASH, CASHIERS, CARWASH_PRICING, formatNaira } from '@/mockData';
@@ -587,8 +583,7 @@ export default function CarWashPOS() {
                             <button
                               onClick={() => {
                                 if (confirm('Are you absolutely certain you wish to wipe this service account record?')) {
-                                  onDeleteSale(sale.id);
-                                  showToast('Record deleted.', 'info');
+          
                                 }
                               }}
                               className="p-1 text-slate-400 hover:text-red-500 rounded transition"

@@ -11,16 +11,11 @@ import {
   ArrowDownRight,
   Filter,
   Boxes,
-  FileText,
-  RefreshCw,
-  PlusCircle,
-  MinusCircle,
-  Check,
   X,
   History,
   Trash2
 } from 'lucide-react';
-import { Product, StockLog, UserRole } from '@/types';
+import { Product, StockLog } from '@/types';
 import { formatNaira } from '@/mockData';
 
 const STATIC_PRODUCTS: Product[] = [
