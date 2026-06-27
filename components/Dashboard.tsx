@@ -271,8 +271,8 @@ export default function Dashboard({ currentRole = 'Administrator', currentUser =
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Daily Multi-SBU Revenue Trend (Last 15 Days)</span>
                   <span className="text-[10px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-1 rounded">Daily Split</span>
                 </div>
-                <div className="h-80 w-full" id="daily-revenue-chart-container">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-80 w-full min-w-0" id="daily-revenue-chart-container">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <BarChart data={masterChartsData.dailyRevCombined}>
                       <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
                       <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="#94a3b8" />
@@ -295,8 +295,8 @@ export default function Dashboard({ currentRole = 'Administrator', currentUser =
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Car Wash Services Premium Dist.</span>
                   <span className="text-[10px] font-semibold bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 px-2 py-1 rounded">By Revenue</span>
                 </div>
-                <div className="h-64 flex items-center justify-center relative" id="service-split-pie-container">
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-64 w-full min-w-0 flex items-center justify-center relative" id="service-split-pie-container">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                       <Pie
                         data={masterChartsData.topServices}
@@ -609,11 +609,11 @@ export default function Dashboard({ currentRole = 'Administrator', currentUser =
               {/* Category Revenues */}
               <div className="p-4 border border-slate-100 dark:border-slate-700/50 rounded-xl space-y-4" id="retail-category-revenue">
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Retail Revenue by Category</span>
-                <div className="h-60 flex items-center justify-center relative">
+                <div className="h-60 w-full min-w-0 flex items-center justify-center relative">
                   {masterChartsData.categoryPerformance.length === 0 ? (
                     <span className="text-xs text-slate-400">No category sales recorded yet</span>
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                       <PieChart>
                         <Pie
                           data={masterChartsData.categoryPerformance}

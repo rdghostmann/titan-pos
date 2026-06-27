@@ -1,8 +1,9 @@
-import React from 'react'
-import CashierDashboard from './CashierDashboard'
+// app/page.tsx
 
-const page = () => {
-  return <CashierDashboard />
+import { redirect } from "next/navigation";
+
+export default async function Page() {
+
+
+  redirect("/cashier/provision-retail");
 }
-
-export default page

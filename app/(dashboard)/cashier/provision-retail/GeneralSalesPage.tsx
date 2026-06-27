@@ -1,4 +1,5 @@
 "use client";
+import GeneralPOS from "@/components/GeneralPOS";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,9 +8,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 
-export default function CashierDashboard() {
+export default function GeneralSalesPage() {
   return (
     <div className="flex flex-1 flex-col">
       <Breadcrumb className="p-4 lg:px-6">
@@ -19,7 +19,7 @@ export default function CashierDashboard() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Admin Overview</BreadcrumbPage>
+            <BreadcrumbPage>Provision Retail</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -27,14 +27,8 @@ export default function CashierDashboard() {
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 
-Admin Dashboard
-          {/* <AdminStatsCard /> */}
-
-
-          <div className="px-4 lg:px-6">
-            <ChartAreaInteractive />
-          </div>
-            {/* <DataTable data={data} /> */}
+          <GeneralPOS />
+          
         </div>
       </div>
     </div>

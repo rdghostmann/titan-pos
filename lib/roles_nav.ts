@@ -56,10 +56,10 @@ export const roleNavMain: Record<string, NavItem[]> = {
 
   cashier: [
     {
-      id: "dashboard",
-      title: "Dashboard",
-      icon: "📊",
-      url: "/cashier",
+      id: "retail",
+      title: "Provision Retail",
+      icon: "🛒",
+      url: "/cashier/provision-retail",
     },
     {
       id: "gas-plant",
@@ -72,12 +72,6 @@ export const roleNavMain: Record<string, NavItem[]> = {
       title: "Car Wash Center",
       icon: "🚘",
       url: "/cashier/car-wash-center",
-    },
-    {
-      id: "retail",
-      title: "Provision Retail",
-      icon: "🛒",
-      url: "/cashier/provision-retail",
     },
     {
       id: "excel",

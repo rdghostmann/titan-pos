@@ -366,7 +366,7 @@ export default function Inventory() {
   return (
     <div className="space-y-6" id="inventory-container">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/50">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between p-6 bg-white dark:bg-gray-800">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Boxes className="w-6 h-6 text-indigo-600" />
