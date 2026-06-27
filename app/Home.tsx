@@ -44,7 +44,7 @@ import Dashboard from '@/components/Dashboard';
 import GasPOS from '@/components/GasPOS';
 import CarWashPOS from '@/components/CarWashPOS';
 import Reporting from '@/components/Reporting';
-import ExcelIO from '@/app/(dashboard)/admin/excel/ExcelIO';
+import ExcelIO from '@/components/ExcelIO';
 import UserManagement from '@/components/UserManagement';
 import GeneralPOS from '@/components/GeneralPOS';
 import Inventory from '@/components/Inventory';

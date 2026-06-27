@@ -515,7 +515,7 @@ export default function CarWashPOS() {
                 <span className="text-sm font-bold text-slate-800 dark:text-white">{formatNaira(localStats.totalSales)}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block font-bold">Vehicles Cleaned</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">Vehicles Cleaned</span>
                 <span className="text-sm font-bold text-slate-800 dark:text-white">{localStats.totalCount} Tickets</span>
               </div>
             </div>
@@ -670,7 +670,7 @@ export default function CarWashPOS() {
               <div 
                 id="receipt-print-area" 
                 className={`mx-auto bg-white text-black p-6 shadow-sm border border-slate-200 rounded-md font-mono ${
-                  printFormat === 'thermal' ? 'max-w-[280px] text-[10px]' : 'max-w-[480px] text-xs'
+                  printFormat === 'thermal' ? 'max-w-70 text-[10px]' : 'max-w-120 text-xs'
                 }`}
               >
                 
