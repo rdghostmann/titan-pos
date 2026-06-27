@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Flame, 
   Search, 
@@ -17,19 +17,61 @@ import {
   HelpCircle,
   FileText
 } from 'lucide-react';
-import { GasSale, UserRole } from '@/types';
+import { GasSale } from '@/types';
 import { ATTENDANTS_GAS, CASHIERS, GAS_RETAIL_PRICE_PER_KG, formatNaira } from '@/mockData';
 
-interface GasPOSProps {
-  sales: GasSale[];
-  onAddSale: (sale: GasSale) => void;
-  onDeleteSale: (id: string) => void;
-  currentRole: UserRole;
-  currentUser: string;
-  showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
-}
+const STATIC_GAS_SALES: GasSale[] = [
+  {
+    id: 'gas-1',
+    receiptNumber: 'GAS-20260621-001',
+    date: '2026-06-21T10:15:00.000Z',
+    customerName: 'Kemi Adebayo',
+    customerPhone: '+2348012345678',
+    cylinderSize: '12.5kg',
+    quantity: 12.5,
+    pricePerKg: GAS_RETAIL_PRICE_PER_KG,
+    amount: 125000,
+    paymentMethod: 'Cash',
+    attendant: 'Amina Yusuf',
+    cashier: 'Tunde Bassey',
+    remarks: 'Delivered within 20 mins'
+  },
+  {
+    id: 'gas-2',
+    receiptNumber: 'GAS-20260621-002',
+    date: '2026-06-21T11:40:00.000Z',
+    customerName: 'Ibrahim Musa',
+    customerPhone: '+2348098765432',
+    cylinderSize: '6kg',
+    quantity: 6,
+    pricePerKg: GAS_RETAIL_PRICE_PER_KG,
+    amount: 72000,
+    paymentMethod: 'POS',
+    attendant: 'Bola Okafor',
+    cashier: 'Grace Eze',
+    remarks: 'Customer requested fast refill'
+  },
+  {
+    id: 'gas-3',
+    receiptNumber: 'GAS-20260621-003',
+    date: '2026-06-21T13:05:00.000Z',
+    customerName: 'Ngozi Chukwu',
+    customerPhone: '+2347055544433',
+    cylinderSize: '25kg',
+    quantity: 25,
+    pricePerKg: GAS_RETAIL_PRICE_PER_KG,
+    amount: 250000,
+    paymentMethod: 'Bank Transfer',
+    attendant: 'Amina Yusuf',
+    cashier: 'Tunde Bassey',
+    remarks: 'Advance payment received'
+  }
+];
 
-export default function GasPOS({ sales, onAddSale, onDeleteSale, currentRole, currentUser, showToast }: GasPOSProps) {
+export default function GasPOS() {
+  const [currentRole] = useState('Administrator');
+  const [currentUser] = useState('System');
+  const [sales, setSales] = useState<GasSale[]>(STATIC_GAS_SALES);
   // Local active form state
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -64,22 +106,18 @@ export default function GasPOS({ sales, onAddSale, onDeleteSale, currentRole, cu
   }, [cylinderSize]);
 
   // Handle auto calculation of receipt number
-  const nextReceiptNumber = useMemo(() => {
-    const today = new Date('2026-06-21'); // current context date
+  const nextReceiptNumber = (() => {
+    const today = new Date('2026-06-21');
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     const prefix = `GAS-${yyyy}${mm}${dd}`;
-
-    // Count existing gas sales for today
     const count = sales.filter(s => s.receiptNumber.startsWith(prefix)).length;
     return `${prefix}-${String(count + 1).padStart(3, '0')}`;
-  }, [sales]);
+  })();
 
   // Auto-calculated amount
-  const totalAmount = useMemo(() => {
-    return Number((quantity * pricePerKg).toFixed(2));
-  }, [quantity, pricePerKg]);
+  const totalAmount = Number((quantity * pricePerKg).toFixed(2));
 
   // Clean / reset form
   const clearForm = () => {
@@ -126,9 +164,9 @@ export default function GasPOS({ sales, onAddSale, onDeleteSale, currentRole, cu
       remarks: remarks.trim()
     };
 
-    onAddSale(newSale);
-    showToast(`Gas Transaction ${newSale.receiptNumber} Saved Successfully!`, 'success');
-    
+    setSales([newSale, ...sales]);
+    console.info(`Gas Transaction ${newSale.receiptNumber} Saved Successfully!`);
+
     // Auto-prompt thermal receipt modal
     setActiveReceipt(newSale);
     clearForm();
@@ -136,39 +174,32 @@ export default function GasPOS({ sales, onAddSale, onDeleteSale, currentRole, cu
 
   // Filter records based on role rules
   // Rule: Pump Attendant can only see their OWN records
-  const filteredSalesByRole = useMemo(() => {
-    if (currentRole === 'Pump Attendant') {
-      // Find the user's display name or filter by username prefix
-      return sales.filter(s => s.attendant.toLowerCase().includes(currentUser.toLowerCase()));
-    }
-    return sales;
-  }, [sales, currentRole, currentUser]);
+  const filteredSalesByRole = currentRole === 'Pump Attendant'
+    ? sales.filter(s => s.attendant.toLowerCase().includes(currentUser.toLowerCase()))
+    : sales;
 
   // Apply search query & filters
-  const searchedSales = useMemo(() => {
-    return filteredSalesByRole.filter(s => {
-      const query = searchQuery.toLowerCase();
-      const matchSearch = 
-        s.customerName.toLowerCase().includes(query) ||
-        s.receiptNumber.toLowerCase().includes(query) ||
-        s.customerPhone.toLowerCase().includes(query) ||
-        s.attendant.toLowerCase().includes(query) ||
-        s.cashier.toLowerCase().includes(query);
+  const searchedSales = filteredSalesByRole.filter(s => {
+    const query = searchQuery.toLowerCase();
+    const matchSearch =
+      s.customerName.toLowerCase().includes(query) ||
+      s.receiptNumber.toLowerCase().includes(query) ||
+      s.customerPhone.toLowerCase().includes(query) ||
+      s.attendant.toLowerCase().includes(query) ||
+      s.cashier.toLowerCase().includes(query);
 
-      const matchSize = filterSize === 'All' || s.cylinderSize === filterSize;
-      const matchPayment = filterPayment === 'All' || s.paymentMethod === filterPayment;
+    const matchSize = filterSize === 'All' || s.cylinderSize === filterSize;
+    const matchPayment = filterPayment === 'All' || s.paymentMethod === filterPayment;
 
-      return matchSearch && matchSize && matchPayment;
-    });
-  }, [filteredSalesByRole, searchQuery, filterSize, filterPayment]);
+    return matchSearch && matchSize && matchPayment;
+  });
 
   // Stats summaries for Gas Sales view
-  const localStats = useMemo(() => {
-    const totalSales = searchedSales.reduce((s, g) => s + g.amount, 0);
-    const totalKg = searchedSales.reduce((s, g) => s + g.quantity, 0);
-    const totalCount = searchedSales.length;
-    return { totalSales, totalKg, totalCount };
-  }, [searchedSales]);
+  const localStats = {
+    totalSales: searchedSales.reduce((s, g) => s + g.amount, 0),
+    totalKg: searchedSales.reduce((s, g) => s + g.quantity, 0),
+    totalCount: searchedSales.length,
+  };
 
   // Trigger Native browser printing
   const triggerNativePrint = () => {
@@ -487,7 +518,7 @@ export default function GasPOS({ sales, onAddSale, onDeleteSale, currentRole, cu
                             {sale.paymentMethod}
                           </span>
                         </td>
-                        <td className="p-3 text-slate-500 truncate max-w-[100px]" title={sale.attendant}>{sale.attendant.split(' ')[0]}</td>
+                        <td className="p-3 text-slate-500 truncate max-w-25" title={sale.attendant}>{sale.attendant.split(' ')[0]}</td>
                         <td className="p-3 text-right flex gap-1 justify-end">
                           <button
                             onClick={() => setActiveReceipt(sale)}
@@ -500,8 +531,8 @@ export default function GasPOS({ sales, onAddSale, onDeleteSale, currentRole, cu
                             <button
                               onClick={() => {
                                 if (confirm('Are you certain you wish to purge this transaction file?')) {
-                                  onDeleteSale(sale.id);
-                                  showToast('Transaction file successfully deleted.', 'info');
+                                  setSales(prev => prev.filter(item => item.id !== sale.id));
+                                  console.info('Transaction file successfully deleted.');
                                 }
                               }}
                               title="Delete Record"
@@ -583,7 +614,7 @@ export default function GasPOS({ sales, onAddSale, onDeleteSale, currentRole, cu
               <div 
                 id="receipt-print-area" 
                 className={`mx-auto bg-white text-black p-6 shadow-sm border border-slate-200 rounded-md font-mono ${
-                  printFormat === 'thermal' ? 'max-w-[280px] text-[10px]' : 'max-w-[480px] text-xs'
+                  printFormat === 'thermal' ? 'max-w-70 text-[10px]' : 'max-w-120 text-xs'
                 }`}
               >
                 

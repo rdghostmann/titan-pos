@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 // Paths that are strictly protected
-const AUTH_ROUTES = ["/buyer", "/supplier", "/admin"];
+const AUTH_ROUTES = ["/admin", "/cashier"];
 
 export async function middleware(request: NextRequest) {
   const token = await getToken({

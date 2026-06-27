@@ -1,18 +1,90 @@
-// lib/roles_nav.ts - Defines the navigation structure for different user roles in the application.
+// lib/roleNavMain.ts
 
-export const roleNavMain = {
+export type NavItem = {
+  id: string;
+  title: string;
+  icon: string;
+  url: string;
+};
+
+export const roleNavMain: Record<string, NavItem[]> = {
   admin: [
-    { id: "overview", title: "Overview", icon: "📊", url: "/admin" },
-    { id: "users", title: "Users", icon: "�", url: "/admin/users" },
-    { id: "suppliers", title: "Suppliers", icon: "🏦", url: "/admin/suppliers" },
-    { id: "products-catalog", title: "Product Catalog", icon: "�", url: "/admin/products" },
-    { id: "all-orders", title: "All Orders", icon: "�", url: "/admin/all-orders" },
-  ],
-  cashier: [
-    { id: "overview", title: "Overview", icon: "📊", url: "/cashier" },
-    { id: "sales", title: "Sales", icon: "�", url: "/cashier/sales" },
-    { id: "returns", title: "Returns", icon: "�", url: "/cashier/returns" },
-    { id: "reports", title: "Reports", icon: "�", url: "/cashier/reports" },
+    {
+      id: "dashboard",
+      title: "Dashboard",
+      icon: "📊",
+      url: "/admin",
+    },
+
+    {
+      id: "gas-plant",
+      title: "Cooking Gas Plant",
+      icon: "⛽",
+      url: "/admin/cooking-gas-plant",
+    },
+    {
+      id: "car-wash",
+      title: "Car Wash Center",
+      icon: "🚘",
+      url: "/admin/car-wash-center",
+    },
+    {
+      id: "retail",
+      title: "Provision Retail",
+      icon: "🛒",
+      url: "/admin/provision-retail",
+    },
+    {
+      id: "inventory",
+      title: "Stores Inventory",
+      icon: "📦",
+      url: "/admin/inventory",
+    },
+    {
+      id: "financial-audits",
+      title: "Financial Audits",
+      icon: "💰",
+      url: "/admin/financial-audits",
+    },
+    {
+      id: "excel",
+      title: "Excel Integration",
+      icon: "📄",
+      url: "/admin/excel",
+    },
   ],
 
-}
+  cashier: [
+    {
+      id: "dashboard",
+      title: "Dashboard",
+      icon: "📊",
+      url: "/cashier",
+    },
+    {
+      id: "gas-plant",
+      title: "Cooking Gas Plant",
+      icon: "⛽",
+      url: "/cashier/cooking-gas-plant",
+    },
+    {
+      id: "car-wash",
+      title: "Car Wash Center",
+      icon: "🚘",
+      url: "/cashier/car-wash-center",
+    },
+    {
+      id: "retail",
+      title: "Provision Retail",
+      icon: "🛒",
+      url: "/cashier/provision-retail",
+    },
+    {
+      id: "excel",
+      title: "Excel Integration",
+      icon: "📄",
+      url: "/cashier/excel",
+    },
+  ],
+
+};

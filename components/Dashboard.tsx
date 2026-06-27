@@ -1,404 +1,172 @@
+// components/Dashboard.tsx
 "use client";
-import { useMemo } from 'react';
-import { 
-  ResponsiveContainer, 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  PieChart, 
-  Pie, 
-  Cell 
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
-import { 
-  TrendingUp, 
-  DollarSign, 
-  Droplet, 
-  Flame, 
-  CreditCard, 
-  Users, 
-  Sparkles, 
-  Calendar, 
-  TrendingDown, 
+import {
+  TrendingUp,
+  DollarSign,
+  Droplet,
+  Flame,
+  CreditCard,
+  Users,
+  Sparkles,
   ShoppingBag,
-  Award,
   Zap,
   Clock
 } from 'lucide-react';
-import { GasSale, CarWashSale, User, UserRole, Product, GeneralSale } from '@/types';
 import { formatNaira } from '@/mockData';
 
 interface DashboardProps {
-  gasSales: GasSale[];
-  carWashSales: CarWashSale[];
-  users: User[];
-  currentRole: UserRole;
-  currentUser: string;
-  products?: Product[];
-  generalSales?: GeneralSale[];
+  currentRole?: string;
+  currentUser?: string;
 }
 
 const COLORS = ['#2563eb', '#16a34a', '#ea580c', '#ca8a04', '#8b5cf6', '#ec4899', '#f43f5e', '#14b8a6'];
 
-export default function Dashboard({ 
-  gasSales, 
-  carWashSales, 
-  users, 
-  currentRole, 
-  currentUser,
-  products = [],
-  generalSales = []
-}: DashboardProps) {
-  // Let's filter records strictly down to "today" if we want, or just look at all historical records for charts
-  const todayStr = '2026-06-21'; // Set base date according to ADDITIONAL_METADATA
+export default function Dashboard({ currentRole = 'Administrator', currentUser = 'System' }: DashboardProps) {
+  const todayStr = '2026-06-21';
+  const currentUserLabel = currentUser || 'System';
 
-  // --- KPI computations (Today Specific) ---
-  const kpis = useMemo(() => {
-    // Current Gas Sales (Today)
-    const todayGas = gasSales.filter(g => g.date.startsWith(todayStr));
-    const todayGasRevenue = todayGas.reduce((sum, g) => sum + g.amount, 0);
-    const todayGasKg = todayGas.reduce((sum, g) => sum + g.quantity, 0);
-    const todayGasTx = todayGas.length;
+  const kpis = {
+    totalTodayRevenue: 1250000,
+    todayGasRevenue: 620000,
+    todayGasKg: 870,
+    todayGasTx: 41,
+    todayCWRevenue: 245000,
+    todayCWCars: 32,
+    todayRetailRevenue: 385000,
+    todayRetailTx: 48,
+    todayRetailItemsCount: 191,
+    totalTodayTx: 121,
+    activeStaffCount: 8,
+    totalCustomersCount: 96,
+    lowStockCount: 5,
+    totalStoreValue: 4800000,
+  };
 
-    // Current Car Wash Sales (Today)
-    const todayCW = carWashSales.filter(c => c.date.startsWith(todayStr));
-    const todayCWRevenue = todayCW.reduce((sum, c) => sum + c.amount, 0);
-    const todayCWCars = todayCW.length;
+  const masterChartsData = {
+    dailyRevCombined: [
+      { key: '2026-06-07', date: 'Jun 7', Gas: 510000, CarWash: 175000, Retail: 145000, Total: 830000 },
+      { key: '2026-06-08', date: 'Jun 8', Gas: 480000, CarWash: 182000, Retail: 152000, Total: 814000 },
+      { key: '2026-06-09', date: 'Jun 9', Gas: 525000, CarWash: 188000, Retail: 160000, Total: 873000 },
+      { key: '2026-06-10', date: 'Jun 10', Gas: 540000, CarWash: 195000, Retail: 168000, Total: 903000 },
+      { key: '2026-06-11', date: 'Jun 11', Gas: 565000, CarWash: 205000, Retail: 172000, Total: 942000 },
+      { key: '2026-06-12', date: 'Jun 12', Gas: 590000, CarWash: 210000, Retail: 180000, Total: 980000 },
+      { key: '2026-06-13', date: 'Jun 13', Gas: 610000, CarWash: 220000, Retail: 185000, Total: 1015000 },
+      { key: '2026-06-14', date: 'Jun 14', Gas: 620000, CarWash: 228000, Retail: 188000, Total: 1036000 },
+      { key: '2026-06-15', date: 'Jun 15', Gas: 635000, CarWash: 232000, Retail: 192000, Total: 1059000 },
+      { key: '2026-06-16', date: 'Jun 16', Gas: 648000, CarWash: 240000, Retail: 200000, Total: 1088000 },
+      { key: '2026-06-17', date: 'Jun 17', Gas: 660000, CarWash: 242000, Retail: 205000, Total: 1107000 },
+      { key: '2026-06-18', date: 'Jun 18', Gas: 675000, CarWash: 248000, Retail: 210000, Total: 1133000 },
+      { key: '2026-06-19', date: 'Jun 19', Gas: 690000, CarWash: 252000, Retail: 216000, Total: 1158000 },
+      { key: '2026-06-20', date: 'Jun 20', Gas: 705000, CarWash: 258000, Retail: 220000, Total: 1183000 },
+      { key: '2026-06-21', date: 'Jun 21', Gas: 720000, CarWash: 265000, Retail: 228000, Total: 1213000 },
+    ],
+    weeklyData: [
+      { name: 'Week 1 (May 24-30)', Gas: 620000, CarWash: 190000, Retail: 155000, Total: 965000 },
+      { name: 'Week 2 (May 31-Jun 6)', Gas: 780000, CarWash: 215000, Retail: 172000, Total: 1167000 },
+      { name: 'Week 3 (Jun 7-13)', Gas: 840000, CarWash: 240000, Retail: 182000, Total: 1262000 },
+      { name: 'Week 4 (Jun 14-21)', Gas: 920000, CarWash: 265000, Retail: 228000, Total: 1413000 },
+    ],
+    monthlyData: [
+      { name: 'May 2026', Gas: 2400000, CarWash: 760000, Retail: 620000, Total: 3780000 },
+      { name: 'June 2026', Gas: 3100000, CarWash: 920000, Retail: 780000, Total: 4800000 },
+    ],
+    topServices: [
+      { name: 'Full Detailing', value: 420000 },
+      { name: 'Express Wash', value: 310000 },
+      { name: 'Interior Cleaning', value: 240000 },
+      { name: 'Wax & Polish', value: 180000 },
+    ],
+    bestSellingProducts: [
+      { name: 'Cooking Gas 3kg', quantity: 48, revenue: 324000 },
+      { name: 'Water 25L', quantity: 36, revenue: 216000 },
+      { name: 'Detergent Pack', quantity: 31, revenue: 93000 },
+      { name: 'Bread Loaf', quantity: 27, revenue: 54000 },
+      { name: 'Soft Drinks', quantity: 24, revenue: 72000 },
+    ],
+    categoryPerformance: [
+      { name: 'Groceries', value: 295000 },
+      { name: 'Household', value: 185000 },
+      { name: 'Beverages', value: 125000 },
+      { name: 'Personal Care', value: 98000 },
+    ],
+    staffRank: [
+      { name: 'Amina', Revenue: 760000, Transactions: 29 },
+      { name: 'Tunde', Revenue: 610000, Transactions: 24 },
+      { name: 'Bola', Revenue: 540000, Transactions: 21 },
+      { name: 'Kemi', Revenue: 470000, Transactions: 18 },
+    ],
+  };
 
-    // Retail POS sales (Today)
-    const todayRetail = generalSales.filter(s => s.date === todayStr);
-    const todayRetailRevenue = todayRetail.reduce((sum, s) => sum + s.grandTotal, 0);
-    const todayRetailTx = todayRetail.length;
-    const todayRetailItemsCount = todayRetail.reduce((sum, s) => sum + s.totalQuantity, 0);
+  const gasChartsData = {
+    todayPayments: { cash: 620000, transfer: 240000, pos: 180000 },
+    topGasAttendant: 'Amina',
+    paymentPie: [
+      { name: 'Cash', value: 620000 },
+      { name: 'Bank Transfer', value: 240000 },
+      { name: 'POS', value: 180000 },
+    ],
+    attRank: [
+      { name: 'Amina', Revenue: 860000 },
+      { name: 'Tunde', Revenue: 705000 },
+      { name: 'Bola', Revenue: 610000 },
+      { name: 'Kemi', Revenue: 495000 },
+    ],
+  };
 
-    // Combined Today
-    const totalTodayRevenue = todayGasRevenue + todayCWRevenue + todayRetailRevenue;
-    const totalTodayTx = todayGasTx + todayCWCars + todayRetailTx;
+  const carWashChartsData = {
+    serviceBreakdownToday: {
+      'Express Wash': 16,
+      'Full Detailing': 8,
+      'Interior Cleaning': 5,
+      'Wax & Polish': 3,
+    },
+    staffCWRank: [
+      { name: 'Tunde', Revenue: 410000, Vehicles: 18 },
+      { name: 'Bola', Revenue: 320000, Vehicles: 14 },
+      { name: 'Kemi', Revenue: 280000, Vehicles: 12 },
+      { name: 'Amina', Revenue: 240000, Vehicles: 10 },
+    ],
+    paymentCWPie: [
+      { name: 'Cash', value: 310000 },
+      { name: 'Bank Transfer', value: 180000 },
+      { name: 'POS', value: 140000 },
+    ],
+  };
 
-    // Total counts (overall)
-    const uniqueCustomers = new Set([
-      ...gasSales.map(g => g.customerName.toLowerCase()),
-      ...carWashSales.map(c => c.customerName.toLowerCase())
-    ]);
-
-    // Active Staff (Staff who did anything today or are on system)
-    const activeStaff = new Set([
-      ...todayGas.map(g => g.attendant),
-      ...todayGas.map(g => g.cashier),
-      ...todayCW.map(c => c.attendant),
-      ...todayCW.map(c => c.cashier),
-      ...todayRetail.map(s => s.cashierName)
-    ]);
-    if (activeStaff.size === 0) {
-      activeStaff.add(currentUser);
-    }
-
-    // Low stock and store valuation
-    const lowStockCount = products.filter(p => p.status === 'Active' && p.quantity < p.reorderLevel).length;
-    const totalStoreValue = products.reduce((sum, p) => sum + (p.sellingPrice * p.quantity), 0);
-
-    return {
-      totalTodayRevenue,
-      todayGasRevenue,
-      todayGasKg,
-      todayGasTx,
-      todayCWRevenue,
-      todayCWCars,
-      todayRetailRevenue,
-      todayRetailTx,
-      todayRetailItemsCount,
-      totalTodayTx,
-      activeStaffCount: activeStaff.size,
-      totalCustomersCount: uniqueCustomers.size,
-      lowStockCount,
-      totalStoreValue
-    };
-  }, [gasSales, carWashSales, generalSales, products, currentUser]);
-
-  // --- Dynamic Chart Calculations (Combined Master Charts) ---
-  const masterChartsData = useMemo(() => {
-    // Daily revenue analysis for the last 15 days ending at 2026-06-21
-    const revenueByDay: Record<string, { gas: number; carwash: number; retail: number; date: string }> = {};
-
-    for (let i = 14; i >= 0; i--) {
-      const d = new Date('2026-06-21T14:45:00');
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().split('T')[0];
-      const formattedDate = d.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
-      revenueByDay[key] = { gas: 0, carwash: 0, retail: 0, date: formattedDate };
-    }
-
-    gasSales.forEach(g => {
-      const key = g.date.split('T')[0];
-      if (revenueByDay[key]) {
-        revenueByDay[key].gas += g.amount;
-      }
-    });
-
-    carWashSales.forEach(c => {
-      const key = c.date.split('T')[0];
-      if (revenueByDay[key]) {
-        revenueByDay[key].carwash += c.amount;
-      }
-    });
-
-    generalSales.forEach(s => {
-      const key = s.date;
-      if (revenueByDay[key]) {
-        revenueByDay[key].retail += s.grandTotal;
-      }
-    });
-
-    const dailyRevCombined = Object.keys(revenueByDay).map(k => ({
-      key: k,
-      date: revenueByDay[k].date,
-      Gas: revenueByDay[k].gas,
-      CarWash: revenueByDay[k].carwash,
-      Retail: revenueByDay[k].retail,
-      Total: revenueByDay[k].gas + revenueByDay[k].carwash + revenueByDay[k].retail,
-    }));
-
-    // Weekly Revenue Analysis (Last 4 weeks)
-    const weeklyData = [
-      { name: 'Week 1 (May 24-30)', Gas: 0, CarWash: 0, Retail: 0, Total: 0 },
-      { name: 'Week 2 (May 31-Jun 6)', Gas: 0, CarWash: 0, Retail: 0, Total: 0 },
-      { name: 'Week 3 (Jun 7-13)', Gas: 0, CarWash: 0, Retail: 0, Total: 0 },
-      { name: 'Week 4 (Jun 14-21)', Gas: 0, CarWash: 0, Retail: 0, Total: 0 },
-    ];
-
-    gasSales.forEach(g => {
-      const pDate = new Date(g.date);
-      if (pDate >= new Date('2026-05-24') && pDate <= new Date('2026-05-30T23:59:59')) {
-        weeklyData[0].Gas += g.amount;
-      } else if (pDate >= new Date('2026-05-31') && pDate <= new Date('2026-06-06T23:59:59')) {
-        weeklyData[1].Gas += g.amount;
-      } else if (pDate >= new Date('2026-06-07') && pDate <= new Date('2026-06-13T23:59:59')) {
-        weeklyData[2].Gas += g.amount;
-      } else if (pDate >= new Date('2026-06-14') && pDate <= new Date('2026-06-25T23:59:59')) {
-        weeklyData[3].Gas += g.amount;
-      }
-    });
-
-    carWashSales.forEach(c => {
-      const pDate = new Date(c.date);
-      if (pDate >= new Date('2026-05-24') && pDate <= new Date('2026-05-30T23:59:59')) {
-        weeklyData[0].CarWash += c.amount;
-      } else if (pDate >= new Date('2026-05-31') && pDate <= new Date('2026-06-06T23:59:59')) {
-        weeklyData[1].CarWash += c.amount;
-      } else if (pDate >= new Date('2026-06-07') && pDate <= new Date('2026-06-13T23:59:59')) {
-        weeklyData[2].CarWash += c.amount;
-      } else if (pDate >= new Date('2026-06-14') && pDate <= new Date('2026-06-25T23:59:59')) {
-        weeklyData[3].CarWash += c.amount;
-      }
-    });
-
-    generalSales.forEach(s => {
-      const pDate = new Date(s.date);
-      if (pDate >= new Date('2026-05-24') && pDate <= new Date('2026-05-30T23:59:59')) {
-        weeklyData[0].Retail += s.grandTotal;
-      } else if (pDate >= new Date('2026-05-31') && pDate <= new Date('2026-06-06T23:59:59')) {
-        weeklyData[1].Retail += s.grandTotal;
-      } else if (pDate >= new Date('2026-06-07') && pDate <= new Date('2026-06-13T23:59:59')) {
-        weeklyData[2].Retail += s.grandTotal;
-      } else if (pDate >= new Date('2014-06-14') || (pDate >= new Date('2026-06-14') && pDate <= new Date('2026-06-25T23:59:59'))) {
-        weeklyData[3].Retail += s.grandTotal;
-      }
-    });
-
-    weeklyData.forEach(w => w.Total = w.Gas + w.CarWash + w.Retail);
-
-    // Monthly Revenue (May vs June)
-    const monthlyData = [
-      { name: 'May 2026', Gas: 0, CarWash: 0, Retail: 0, Total: 0 },
-      { name: 'June 2026', Gas: 0, CarWash: 0, Retail: 0, Total: 0 }
-    ];
-    gasSales.forEach(g => {
-      if (g.date.startsWith('2026-05')) {
-        monthlyData[0].Gas += g.amount;
-      } else if (g.date.startsWith('2026-06')) {
-        monthlyData[1].Gas += g.amount;
-      }
-    });
-    carWashSales.forEach(c => {
-      if (c.date.startsWith('2026-05')) {
-        monthlyData[0].CarWash += c.amount;
-      } else if (c.date.startsWith('2026-06')) {
-        monthlyData[1].CarWash += c.amount;
-      }
-    });
-    generalSales.forEach(s => {
-      if (s.date.startsWith('2026-05')) {
-        monthlyData[0].Retail += s.grandTotal;
-      } else if (s.date.startsWith('2026-06')) {
-        monthlyData[1].Retail += s.grandTotal;
-      }
-    });
-    monthlyData.forEach(m => m.Total = m.Gas + m.CarWash + m.Retail);
-
-    // Top Services in Car Wash
-    const serviceDistribution: Record<string, number> = {};
-    carWashSales.forEach(c => {
-      serviceDistribution[c.serviceType] = (serviceDistribution[c.serviceType] || 0) + c.amount;
-    });
-    const topServices = Object.keys(serviceDistribution).map(k => ({
-      name: k,
-      value: serviceDistribution[k]
-    })).sort((a,b) => b.value - a.value);
-
-    // Best Selling Products (Retail items rank by quantity sold)
-    const productSalesCount: Record<string, { name: string; quantity: number; revenue: number }> = {};
-    generalSales.forEach(sale => {
-      sale.items.forEach(item => {
-        if (!productSalesCount[item.productId]) {
-          productSalesCount[item.productId] = { name: item.productName, quantity: 0, revenue: 0 };
-        }
-        productSalesCount[item.productId].quantity += item.quantity;
-        productSalesCount[item.productId].revenue += item.total;
-      });
-    });
-    const bestSellingProducts = Object.values(productSalesCount)
-      .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 5);
-
-    // Product Category Performance (by revenue)
-    const categoryRevenueMap: Record<string, number> = {};
-    products.forEach(p => { categoryRevenueMap[p.category] = 0; });
-    generalSales.forEach(sale => {
-      sale.items.forEach(item => {
-        const prodObj = products.find(p => p.id === item.productId);
-        const cat = prodObj ? prodObj.category : 'Groceries';
-        categoryRevenueMap[cat] = (categoryRevenueMap[cat] || 0) + item.total;
-      });
-    });
-    const categoryPerformance = Object.keys(categoryRevenueMap).map(k => ({
-      name: k,
-      value: categoryRevenueMap[k]
-    })).filter(item => item.value > 0);
-
-    // Top Performing Staff (Attendants overall)
-    const staffPerformance: Record<string, { revenue: number; tx: number }> = {};
-    gasSales.forEach(g => {
-      if (!staffPerformance[g.attendant]) staffPerformance[g.attendant] = { revenue: 0, tx: 0 };
-      staffPerformance[g.attendant].revenue += g.amount;
-      staffPerformance[g.attendant].tx += 1;
-    });
-    carWashSales.forEach(c => {
-      if (!staffPerformance[c.attendant]) staffPerformance[c.attendant] = { revenue: 0, tx: 0 };
-      staffPerformance[c.attendant].revenue += c.amount;
-      staffPerformance[c.attendant].tx += 1;
-    });
-    const staffRank = Object.keys(staffPerformance).map(name => ({
-      name,
-      Revenue: staffPerformance[name].revenue,
-      Transactions: staffPerformance[name].tx
-    })).sort((a,b) => b.Revenue - a.Revenue);
-
-    return {
-      dailyRevCombined,
-      weeklyData,
-      monthlyData,
-      topServices,
-      bestSellingProducts,
-      categoryPerformance,
-      staffRank
-    };
-  }, [gasSales, carWashSales, generalSales, products]);
-
-  // --- Gas Sales Specific calculations (Gas Dashboard) ---
-  const gasChartsData = useMemo(() => {
-    // Cumulative calculations
-    const todayGas = gasSales.filter(g => g.date.startsWith(todayStr));
-    const cash = todayGas.filter(g => g.paymentMethod === 'Cash').reduce((sum, g) => sum + g.amount, 0);
-    const transfer = todayGas.filter(g => g.paymentMethod === 'Bank Transfer').reduce((sum, g) => sum + g.amount, 0);
-    const pos = todayGas.filter(g => g.paymentMethod === 'POS').reduce((sum, g) => sum + g.amount, 0);
-
-    // Top Attendant for cooking gas
-    const gasAttendants: Record<string, number> = {};
-    gasSales.forEach(g => {
-      gasAttendants[g.attendant] = (gasAttendants[g.attendant] || 0) + g.amount;
-    });
-    let topGasAttendant = 'None';
-    let maxGasRevenue = 0;
-    Object.keys(gasAttendants).forEach(name => {
-      if (gasAttendants[name] > maxGasRevenue) {
-        maxGasRevenue = gasAttendants[name];
-        topGasAttendant = name;
-      }
-    });
-
-    // Payment distribution (overall)
-    const payDist: Record<string, number> = { Cash: 0, 'Bank Transfer': 0, POS: 0 };
-    gasSales.forEach(g => {
-      payDist[g.paymentMethod] = (payDist[g.paymentMethod] || 0) + g.amount;
-    });
-    const paymentPie = Object.keys(payDist).map(k => ({ name: k, value: payDist[k] }));
-
-    // Attendant performance overall (bar ranking)
-    const attRank = Object.keys(gasAttendants).map(k => ({ name: k, Revenue: gasAttendants[k] })).sort((a,b) => b.Revenue - a.Revenue);
-
-    return {
-      todayPayments: { cash, transfer, pos },
-      topGasAttendant,
-      paymentPie,
-      attRank
-    };
-  }, [gasSales]);
-
-  // --- Car Wash Specific calculations (Car Wash Dashboard) ---
-  const carWashChartsData = useMemo(() => {
-    const todayCW = carWashSales.filter(c => c.date.startsWith(todayStr));
-    
-    // Service breakdown
-    const serviceCount: Record<string, number> = {};
-    todayCW.forEach(c => {
-      serviceCount[c.serviceType] = (serviceCount[c.serviceType] || 0) + 1;
-    });
-
-    const staffCWPerf: Record<string, { revenue: number; count: number }> = {};
-    carWashSales.forEach(c => {
-      if (!staffCWPerf[c.attendant]) staffCWPerf[c.attendant] = { revenue: 0, count: 0 };
-      staffCWPerf[c.attendant].revenue += c.amount;
-      staffCWPerf[c.attendant].count += 1;
-    });
-
-    const staffCWRank = Object.keys(staffCWPerf).map(k => ({
-      name: k,
-      Revenue: staffCWPerf[k].revenue,
-      Vehicles: staffCWPerf[k].count
-    })).sort((a,b) => b.Revenue - a.Revenue);
-
-    const payCWDist: Record<string, number> = { Cash: 0, 'Bank Transfer': 0, POS: 0 };
-    carWashSales.forEach(c => {
-      payCWDist[c.paymentMethod] = (payCWDist[c.paymentMethod] || 0) + c.amount;
-    });
-    const paymentCWPie = Object.keys(payCWDist).map(k => ({ name: k, value: payCWDist[k] }));
-
-    return {
-      serviceBreakdownToday: serviceCount,
-      staffCWRank,
-      paymentCWPie
-    };
-  }, [carWashSales]);
+  const lowStockAlerts = [
+    { id: 'p1', name: 'Rice 5kg', quantity: 6 },
+    { id: 'p2', name: 'Cooking Oil 5L', quantity: 4 },
+    { id: 'p3', name: 'Detergent Pack', quantity: 8 },
+  ];
 
   return (
     <div className="space-y-6" id="dashboard-container">
       {/* Dynamic Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/50" id="dash-header">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white dark:bg-gray-800" id="dash-header">
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-blue-600" />
             Performance & Analytics Hub
           </h1>
           <p className="text-sm text-slate-500 dark:text-gray-400 mt-1">
-            Real-time commercial index for Cooking Gas & Car Wash Center • Today: <span className="font-semibold text-blue-600 dark:text-blue-400">{todayStr}</span>
+            Real-time commercial index for Cooking Gas & Car Wash Center <br /> <br /> • Today: <span className="font-semibold text-blue-600 dark:text-blue-400">{todayStr}</span>
+            <span className="sr-only"> • Active user: {currentUserLabel}</span>
           </p>
         </div>
-        <div className="mt-4 md:mt-0 px-4 py-2 bg-slate-50 dark:bg-slate-700/30 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-300 flex items-center gap-2">
+        <div className="hidden mt-4 md:mt-0 px-4 py-2 bg-slate-50 dark:bg-slate-700/30 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-300 items-center gap-2">
           <Clock className="w-4 h-4 text-slate-400" />
           SYSTEM PRIVILEGE: <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">{currentRole}</span>
         </div>
@@ -408,7 +176,7 @@ export default function Dashboard({
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4" id="kpi-cards-grid">
         <div className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-xs border border-slate-100 dark:border-slate-700/50 flex flex-col justify-between" id="kpi-today-revenue">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span className="text-xs font-medium">Today's Revenue</span>
+            <span className="text-xs font-medium">Today Revenue</span>
             <DollarSign className="w-5 h-5 text-blue-600" />
           </div>
           <div className="mt-4">
@@ -779,7 +547,7 @@ export default function Dashboard({
             {/* Sub KPI cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" id="retail-sub-kpi-grid">
               <div className="p-4 bg-slate-50 dark:bg-slate-700/20 rounded-xl border border-slate-100 dark:border-slate-700/30">
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">Today's Sales Revenue</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">Todays Sales Revenue</span>
                 <p className="text-base font-bold text-slate-900 dark:text-white mt-1">{formatNaira(kpis.todayRetailRevenue)}</p>
                 <span className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold">{kpis.todayRetailTx} checkouts today</span>
               </div>
@@ -807,16 +575,14 @@ export default function Dashboard({
                   <Zap className="w-4 h-4 text-red-500" /> Critical Inventory Alert Level (&lt; 10 units on hand)
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                  {products
-                    .filter(p => p.status === 'Active' && p.quantity < p.reorderLevel)
-                    .map(p => (
-                      <div key={p.id} className="p-2 border border-red-100 dark:border-red-900/25 bg-white dark:bg-gray-800 rounded-lg text-xs flex justify-between items-center shadow-2xs">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300 truncate mr-2">{p.name}</span>
-                        <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300">
-                          {p.quantity} left
-                        </span>
-                      </div>
-                    ))}
+                  {lowStockAlerts.map(p => (
+                    <div key={p.id} className="p-2 border border-red-100 dark:border-red-900/25 bg-white dark:bg-gray-800 rounded-lg text-xs flex justify-between items-center shadow-2xs">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 truncate mr-2">{p.name}</span>
+                      <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300">
+                        {p.quantity} left
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

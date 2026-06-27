@@ -55,10 +55,10 @@ export function SiteHeader() {
             {/* TEXT */}
             <div className="hidden sm:flex flex-col text-right">
               <span className="text-xs font-bold text-slate-800 leading-tight">
-                MedSupply User
+                TitanPOS
               </span>
               <span className="text-[10px] font-medium text-slate-400 font-mono">
-                user@medsupply.com
+                user@titanpos.com
               </span>
             </div>
 

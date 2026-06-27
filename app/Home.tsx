@@ -1,13 +1,13 @@
+// Home.tsx
 "use client";
 import { useState, useEffect } from 'react';
-import { 
-  getSavedGasSales, 
-  saveGasSales, 
-  getSavedCarWashSales, 
-  saveCarWashSales, 
-  getSavedUsers, 
-  saveUsers, 
-  DEFAULT_USERS,
+import {
+  getSavedGasSales,
+  saveGasSales,
+  getSavedCarWashSales,
+  saveCarWashSales,
+  getSavedUsers,
+  saveUsers,
   getSavedProducts,
   saveProducts,
   getSavedGeneralSales,
@@ -18,19 +18,19 @@ import {
 import { GasSale, CarWashSale, User, UserRole, Product, GeneralSale, StockLog } from '@/types';
 
 // Icons
-import { 
-  TrendingUp, 
+import {
+  TrendingUp,
   Captions,
-  Flame, 
-  Droplet, 
-  FileText, 
-  FileSpreadsheet, 
-  Users, 
-  Sun, 
-  Moon, 
-  Menu, 
-  X, 
-  ShieldAlert, 
+  Flame,
+  Droplet,
+  FileText,
+  FileSpreadsheet,
+  Users,
+  Sun,
+  Moon,
+  Menu,
+  X,
+  ShieldAlert,
   UserCheck,
   MapPin,
   BellRing,
@@ -49,14 +49,14 @@ import UserManagement from '@/components/UserManagement';
 import GeneralPOS from '@/components/GeneralPOS';
 import Inventory from '@/components/Inventory';
 
-export default function Home () {
-      // Database local states
-  const [gasSales, setGasSales] = useState<GasSale[]>([]);
-  const [carWashSales, setCarWashSales] = useState<CarWashSale[]>([]);
-  const [posUsers, setPosUsers] = useState<User[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [generalSales, setGeneralSales] = useState<GeneralSale[]>([]);
-  const [stockLogs, setStockLogs] = useState<StockLog[]>([]);
+export default function Home() {
+  // Database local states
+  const [gasSales, setGasSales] = useState<GasSale[]>(() => getSavedGasSales());
+  const [carWashSales, setCarWashSales] = useState<CarWashSale[]>(() => getSavedCarWashSales());
+  const [posUsers, setPosUsers] = useState<User[]>(() => getSavedUsers());
+  const [products, setProducts] = useState<Product[]>(() => getSavedProducts());
+  const [generalSales, setGeneralSales] = useState<GeneralSale[]>(() => getSavedGeneralSales());
+  const [stockLogs, setStockLogs] = useState<StockLog[]>(() => getSavedStockLogs());
 
   // Simulation Login States
   const [currentUsername, setCurrentUsername] = useState('admin');
@@ -75,30 +75,12 @@ export default function Home () {
   // Toast Notification State
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  // Trigger loading seeds if empty
+  // Initialize theme
   useEffect(() => {
-    const loadedGas = getSavedGasSales();
-    const loadedCW = getSavedCarWashSales();
-    const loadedUsers = getSavedUsers();
-    const loadedProducts = getSavedProducts();
-    const loadedGenSales = getSavedGeneralSales();
-    const loadedStockLogs = getSavedStockLogs();
+    const isDark = localStorage.getItem("theme_dark") === "true";
 
-    setGasSales(loadedGas);
-    setCarWashSales(loadedCW);
-    setPosUsers(loadedUsers);
-    setProducts(loadedProducts);
-    setGeneralSales(loadedGenSales);
-    setStockLogs(loadedStockLogs);
-
-    // Dark Mode initializer
-    const isDark = localStorage.getItem('theme_dark') === 'true';
-    setDarkMode(isDark);
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // setDarkMode(isDark);
+    document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
   // Sync state mutations helper
@@ -175,7 +157,7 @@ export default function Home () {
       setCurrentUsername(target.username);
       setCurrentRole(target.role);
       setCurrentName(target.name);
-      
+
       // Auto-restrict tab perspective if needed:
       // e.g. Pump attendants can't see Excel settings. Auto route to GasPOS or Dashboard
       if (target.role === 'Pump Attendant') {
@@ -266,14 +248,13 @@ export default function Home () {
   };
 
   return (
-     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
-      
+    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+
       {/* 1. SIDEBAR NAVIGATION WINDOW */}
-      <aside 
+      <aside
         id="main-sidebar-navigation"
-        className={`fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-white flex flex-col justify-between border-r border-slate-800 transition-transform duration-300 lg:translate-x-0 lg:static lg:h-screen shrink-0 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-white flex flex-col justify-between border-r border-slate-800 transition-transform duration-300 lg:translate-x-0 lg:static lg:h-screen shrink-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex flex-col flex-1 overflow-y-auto">
           {/* Brand header */}
@@ -288,8 +269,8 @@ export default function Home () {
               </div>
             </div>
             {/* Mobile close button */}
-            <button 
-              onClick={() => setIsSidebarOpen(false)} 
+            <button
+              onClick={() => setIsSidebarOpen(false)}
               className="lg:hidden p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
             >
               <X className="w-5 h-5" />
@@ -311,16 +292,15 @@ export default function Home () {
 
           {/* Tab Navigation links */}
           <nav className="p-4 space-y-1.5 flex-1" id="sidebar-nav-list">
-            
+
             {/* Tab 1: Combined Master Dashboard (Admin/Cashier only) */}
             {isAccessible('dashboard') && (
               <button
                 onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${
-                  activeTab === 'dashboard' 
-                    ? 'bg-blue-600 text-white shadow-md' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
-                }`}
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${activeTab === 'dashboard'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                  }`}
               >
                 <TrendingUp className="w-4 h-4" /> Performance Analytics
               </button>
@@ -330,11 +310,10 @@ export default function Home () {
             {isAccessible('gas') && (
               <button
                 onClick={() => { setActiveTab('gas'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${
-                  activeTab === 'gas' 
-                    ? 'bg-orange-600 text-white shadow-md' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-855'
-                }`}
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${activeTab === 'gas'
+                  ? 'bg-orange-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-855'
+                  }`}
               >
                 <Flame className="w-4 h-4" /> Cooking Gas Plant
               </button>
@@ -344,11 +323,10 @@ export default function Home () {
             {isAccessible('carwash') && (
               <button
                 onClick={() => { setActiveTab('carwash'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${
-                  activeTab === 'carwash' 
-                    ? 'bg-green-650 text-white shadow-md' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-860'
-                }`}
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${activeTab === 'carwash'
+                  ? 'bg-green-650 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-860'
+                  }`}
               >
                 <Droplet className="w-4 h-4" /> Car Wash Center
               </button>
@@ -358,11 +336,10 @@ export default function Home () {
             {isAccessible('retail_pos') && (
               <button
                 onClick={() => { setActiveTab('retail_pos'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${
-                  activeTab === 'retail_pos' 
-                    ? 'bg-indigo-600 text-white shadow-md' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
-                }`}
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${activeTab === 'retail_pos'
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                  }`}
               >
                 <ShoppingCart className="w-4 h-4" /> Provision Retail
               </button>
@@ -372,11 +349,10 @@ export default function Home () {
             {isAccessible('inventory') && (
               <button
                 onClick={() => { setActiveTab('inventory'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${
-                  activeTab === 'inventory' 
-                    ? 'bg-violet-600 text-white shadow-md' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
-                }`}
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${activeTab === 'inventory'
+                  ? 'bg-violet-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                  }`}
               >
                 <Boxes className="w-4 h-4" /> Stores Inventory Admin
               </button>
@@ -386,11 +362,10 @@ export default function Home () {
             {isAccessible('reports') && (
               <button
                 onClick={() => { setActiveTab('reports'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${
-                  activeTab === 'reports' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
-                }`}
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${activeTab === 'reports'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                  }`}
               >
                 <FileText className="w-4 h-4" /> Financial Audits
               </button>
@@ -400,11 +375,10 @@ export default function Home () {
             {isAccessible('excel') && (
               <button
                 onClick={() => { setActiveTab('excel'); setIsSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${
-                  activeTab === 'excel' 
-                    ? 'bg-emerald-600 text-white' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-850'
-                }`}
+                className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${activeTab === 'excel'
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                  }`}
               >
                 <FileSpreadsheet className="w-4 h-4" /> Excel Integration
               </button>
@@ -413,11 +387,10 @@ export default function Home () {
             {/* Tab 6: Active Users profilesSwitcher (Admin only to manage) */}
             <button
               onClick={() => { setActiveTab('users'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${
-                activeTab === 'users' 
-                  ? 'bg-indigo-600 text-white shadow-md' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-850'
-              }`}
+              className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-lg text-xs font-bold font-display transition ${activeTab === 'users'
+                ? 'bg-indigo-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                }`}
             >
               <Users className="w-4 h-4" /> Accounts & Logins
             </button>
@@ -442,29 +415,29 @@ export default function Home () {
 
       {/* Background shadow overlay for responsive mobile slideout drawer */}
       {isSidebarOpen && (
-        <div 
-          onClick={() => setIsSidebarOpen(false)} 
+        <div
+          onClick={() => setIsSidebarOpen(false)}
           className="fixed inset-0 z-30 bg-black/50 lg:hidden"
         ></div>
       )}
 
       {/* 2. MAIN CORE LAYOUT FRAME */}
       <main className="flex-1 flex flex-col min-w-0" id="main-content-scroller">
-        
+
         {/* GLOBAL HEADER BAR */}
-        <header 
-          id="header-global" 
+        <header
+          id="header-global"
           className="h-16 px-6 bg-white dark:bg-gray-800 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center shrink-0 shadow-xs"
         >
           {/* Left panel */}
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => setIsSidebarOpen(true)}
               className="lg:hidden p-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg transition"
             >
               <Menu className="w-5 h-5" />
             </button>
-            
+
             <div className="invisible items-center gap-2">
               <MapPin className="w-4 h-4 text-slate-400" />
               <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Headquarters branch Lekki</span>
@@ -473,10 +446,10 @@ export default function Home () {
 
           {/* Right panel */}
           <div className="flex items-center gap-4">
-            
+
             {/* Quick credentials switcher indicator pill in header */}
-            <div 
-              onClick={() => setActiveTab('users')} 
+            <div
+              onClick={() => setActiveTab('users')}
               className="invisible px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 cursor-pointer text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-semibold flex items-center gap-2 border border-indigo-100 dark:border-indigo-900/50 hover:scale-[1.01] transition select-none"
             >
               <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
@@ -498,31 +471,19 @@ export default function Home () {
         {/* ACTIVE TAB MAIN ENGINE VIEWPORT */}
         <section className="flex-1 overflow-y-auto p-6 md:p-8 max-w-7xl mx-auto w-full">
           {activeTab === 'dashboard' && (
-            <Dashboard 
-              gasSales={gasSales} 
-              carWashSales={carWashSales} 
-              users={posUsers}
+            <Dashboard
               currentRole={currentRole}
               currentUser={currentName}
-              products={products}
-              generalSales={generalSales}
             />
           )}
 
           {activeTab === 'gas' && (
-            <GasPOS 
-              sales={gasSales} 
-              onAddSale={handleAddGasSale}
-              onDeleteSale={handleDeleteGasSale}
-              currentRole={currentRole}
-              currentUser={currentName}
-              showToast={showToastMsg}
-            />
+            <GasPOS />
           )}
 
           {activeTab === 'carwash' && (
-            <CarWashPOS 
-              sales={carWashSales} 
+            <CarWashPOS
+              sales={carWashSales}
               onAddSale={handleAddCWSale}
               onDeleteSale={handleDeleteCWSale}
               currentRole={currentRole}
@@ -532,7 +493,7 @@ export default function Home () {
           )}
 
           {activeTab === 'retail_pos' && (
-            <GeneralPOS 
+            <GeneralPOS
               products={products}
               sales={generalSales}
               onAddSale={handleAddGeneralSale}
@@ -544,7 +505,7 @@ export default function Home () {
           )}
 
           {activeTab === 'inventory' && (
-            <Inventory 
+            <Inventory
               products={products}
               stockLogs={stockLogs}
               onAddProduct={handleAddProduct}
@@ -557,16 +518,16 @@ export default function Home () {
           )}
 
           {activeTab === 'reports' && (
-            <Reporting 
-              gasSales={gasSales} 
-              carWashSales={carWashSales} 
+            <Reporting
+              gasSales={gasSales}
+              carWashSales={carWashSales}
             />
           )}
 
           {activeTab === 'excel' && (
-            <ExcelIO 
-              gasSales={gasSales} 
-              carWashSales={carWashSales} 
+            <ExcelIO
+              gasSales={gasSales}
+              carWashSales={carWashSales}
               onImportGasSales={handleImportGasSales}
               onImportCarWashSales={handleImportCarWashSales}
               showToast={showToastMsg}
@@ -574,7 +535,7 @@ export default function Home () {
           )}
 
           {activeTab === 'users' && (
-            <UserManagement 
+            <UserManagement
               users={posUsers}
               currentRole={currentRole}
               currentUser={currentUsername}
@@ -590,7 +551,7 @@ export default function Home () {
 
       {/* 3. FLOAT FLOATING TOAST CONTAINER PORTAL */}
       {toast && (
-        <div 
+        <div
           className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl shadow-xl flex items-center gap-3 border animate-none transition-all duration-350 bg-slate-900 border-slate-800 text-white max-w-sm"
           id="toast-notification-popup"
         >
@@ -602,8 +563,8 @@ export default function Home () {
           <div className="text-xs font-semibold leading-relaxed flex-1">
             {toast.message}
           </div>
-          <button 
-            onClick={() => setToast(null)} 
+          <button
+            onClick={() => setToast(null)}
             className="text-slate-400 hover:text-white p-1"
           >
             <X className="w-4 h-4" />

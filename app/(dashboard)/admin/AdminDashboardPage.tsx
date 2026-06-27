@@ -8,8 +8,9 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import Dashboard from "../../../components/Dashboard";
 
-export default function AdminDashboard() {
+export default function AdminDashboardPage() {
   return (
     <div className="flex flex-1 flex-col">
       <Breadcrumb className="p-4 lg:px-6">
@@ -27,14 +28,11 @@ export default function AdminDashboard() {
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 
-Admin Dashboard
-          {/* <AdminStatsCard /> */}
-
-
-          <div className="px-4 lg:px-6">
+          <Dashboard />
+          {/* <div className="px-4 lg:px-6">
             <ChartAreaInteractive />
-          </div>
-            {/* <DataTable data={data} /> */}
+          </div> */}
+          {/* <DataTable data={data} /> */}
         </div>
       </div>
     </div>

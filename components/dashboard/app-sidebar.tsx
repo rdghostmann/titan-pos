@@ -74,10 +74,9 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
               <Link href="/">
-                <Command className="hidden size-5!" />
-                <Image src="/logo.png" alt="User Avatar" width={20} height={20} />
+                <Command className="size-5!" />
                 <span className="text-xl sm:text-2xl font-black tracking-tight bg-linear-to-r from-blue-600 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
-                  MedSupply
+                  TitanPOS
                 </span>
               </Link>
             </SidebarMenuButton>

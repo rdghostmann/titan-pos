@@ -30,11 +30,9 @@ export const authOptions: NextAuthOptions = {
         // 3. Return user object that matches your next-auth.d.ts definitions
         return {
           id: user._id.toString(),
+          name: user.name,
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
           role: user.role,
-          verified: user.verified,
         };
       },
     }),
@@ -47,19 +45,17 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-        token.verified = user.verified;
+        token.name = user.name;
+        token.email = user.email;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as "buyer" | "supplier" | "admin";
-        session.user.firstName = token.firstName as string;
-        session.user.lastName = token.lastName as string;
-        session.user.verified = token.verified as boolean;
+        session.user.role = token.role as "admin" | "cashier";
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
       }
       return session;
     },

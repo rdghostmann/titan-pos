@@ -7,28 +7,24 @@ import NextAuth, {
 import { DefaultJWT } from "next-auth/jwt"
 
 export type UserRole =
-  | "buyer"
-  | "supplier"
   | "admin"
+  | "cashier";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string
-      firstName?: string
-      lastName?: string
       role: UserRole
-      verified?: boolean
+      name?: string
+      email?: string
     } & DefaultSession["user"]
   }
 
   interface User {
     id: string
-    firstName?: string
-    lastName?: string
+    name?: string
     email: string
     role: UserRole
-    verified?: boolean
   }
 }
 
@@ -36,9 +32,7 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     id: string
     email: string
-    firstName?: string
-    lastName?: string
+    name?: string
     role: UserRole
-    verified?: boolean
   }
 }
