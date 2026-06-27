@@ -52,6 +52,12 @@ export const roleNavMain: Record<string, NavItem[]> = {
       icon: "📄",
       url: "/admin/excel",
     },
+    {
+      id: "User Management",
+      title: "User Management",
+      icon: "👨🏿‍🤝‍👨🏼",
+      url: "/admin/users-management",
+    },
   ],
 
   cashier: [

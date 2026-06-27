@@ -13,32 +13,27 @@ import {
 } from 'lucide-react';
 import { User, UserRole } from '@/types';
 
-interface UserManagementProps {
-  users: User[];
-  currentRole: UserRole;
-  currentUser: string;
-  onAddUser: (user: User) => void;
-  onDeleteUser: (id: string) => void;
-  onSwitchUser: (username: string) => void;
-  showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
-}
+const STATIC_USERS: User[] = [
+  { id: 'usr-1', name: 'Alhaji Ibrahim', role: 'Administrator', username: 'admin' },
+  { id: 'usr-2', name: 'Binta Musa', role: 'Cashier', username: 'binta' },
+  { id: 'usr-3', name: 'Tunde Akin', role: 'Pump Attendant', username: 'tunde' },
+  { id: 'usr-4', name: 'Kemi Lawal', role: 'Car Wash Attendant', username: 'kemi' }
+];
 
-export default function UserManagement({
-  users,
-  currentRole,
-  currentUser,
-  onAddUser,
-  onDeleteUser,
-  onSwitchUser,
-  showToast
-}: UserManagementProps) {
+export default function UserManagement() {
+  const [users, setUsers] = useState<User[]>(STATIC_USERS);
+  const [currentRole, setCurrentRole] = useState<UserRole>('Administrator');
+  const [currentUser, setCurrentUser] = useState('admin');
 
   // Local form states
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffUsername, setNewStaffUsername] = useState('');
   const [newStaffRole, setNewStaffRole] = useState<UserRole>('Pump Attendant');
 
-  // Add user handler
+  const showToast = (msg: string, type?: 'success' | 'error' | 'info') => {
+    console.info(`[${type ?? 'info'}] ${msg}`);
+  };
+
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStaffName.trim()) {
@@ -65,7 +60,7 @@ export default function UserManagement({
       username: uname
     };
 
-    onAddUser(newUser);
+    setUsers(prev => [...prev, newUser]);
     showToast(`System Account created for ${newUser.name} as ${newUser.role}!`, 'success');
     
     // reset form
@@ -90,49 +85,7 @@ export default function UserManagement({
         </div>
       </div>
 
-      {/* QUICK LOGIN SIMULATOR */}
-      <div className="p-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-md text-white space-y-4" id="role-login-simulator">
-        <div className="flex items-center gap-2">
-          <Shield className="w-6 h-6 text-white animate-pulse" />
-          <div>
-            <h2 className="text-sm font-extrabold uppercase tracking-wider">Active Credentials Simulator Desk</h2>
-            <p className="text-xs text-blue-100">Click any user profile below to immediately switch active credentials and view customized layouts!</p>
-          </div>
-        </div>
-
-        {/* Clickable Quick Logins grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2" id="quick-switches-grid">
-          {users.map(u => {
-            const isActive = currentUser.toLowerCase() === u.username.toLowerCase();
-            return (
-              <button
-                key={u.id}
-                onClick={() => {
-                  onSwitchUser(u.username);
-                  showToast(`Successfully switched login perspective to ${u.name}!`, 'info');
-                }}
-                className={`p-3.5 rounded-xl text-left border transition-all duration-200 flex flex-col justify-between h-24 relative overflow-hidden ${
-                  isActive 
-                    ? 'bg-white text-slate-900 border-white shadow-xl scale-[1.03] ring-4 ring-indigo-300' 
-                    : 'bg-indigo-700/40 border-indigo-500/50 text-white hover:bg-indigo-700/60'
-                }`}
-              >
-                <div>
-                  <div className="font-bold text-[13px] tracking-tight truncate pr-4">{u.name}</div>
-                  <div className={`text-[9px] uppercase font-mono mt-1 ${isActive ? 'text-blue-600 font-bold' : 'text-blue-200'}`}>{u.role}</div>
-                </div>
-                <div className="flex justify-between items-center w-full mt-2">
-                  <span className="text-[10px] font-mono opacity-80 shrink-0">@{u.username}</span>
-                  {isActive && (
-                    <span className="text-[10px] bg-emerald-500 text-white font-extrabold px-1.5 py-0.5 rounded uppercase shrink-0">ACTIVE</span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
+ 
       {/* Admin Panel Specific Operations */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="user-mgmt-actions-grid">
         
@@ -248,7 +201,7 @@ export default function UserManagement({
                             <button
                               onClick={() => {
                                 if (confirm(`Are you certain you wish to purge staff member ${u.name}?`)) {
-                                  onDeleteUser(u.id);
+                                  setUsers(prev => prev.filter(user => user.id !== u.id));
                                   showToast(`Staff record for ${u.name} removed.`, 'info');
                                 }
                               }}
